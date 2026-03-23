@@ -48,7 +48,11 @@ Plans:
   2. On iOS, completing login in the WebView causes the org ID and session cookie to be written to Keychain with the shared access group (verifiable by reading them back from both the main app and widget extension)
   3. If org ID is not captured within 10 seconds of login detection, the user sees an error prompt rather than a silent hang
   4. Credentials from a previous session are available after the app is killed and relaunched (no re-login required)
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 02-01-PLAN.md — Android CredentialStore, LoginActivity with WebView org ID interception, cookie extraction, MainActivity credential gate (AUTH-01, AUTH-02, AUTH-03, AUTH-04, AUTH-09, AUTH-10)
+- [ ] 02-02-PLAN.md — iOS CredentialStore, LoginView with WKWebView JS injection, cookie extraction, ContentView credential gate (AUTH-05, AUTH-06, AUTH-07, AUTH-08, AUTH-09, AUTH-10)
 
 ### Phase 3: Network Layer
 **Goal**: Both platforms can fetch live usage data from the Claude.ai API using stored credentials, parse the response, write display-ready data to shared storage, and handle auth failures gracefully
@@ -101,8 +105,8 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation | 0/4 | Not started | - |
-| 2. Authentication | 0/TBD | Not started | - |
+| 1. Foundation | 4/4 | Complete | 2026-03-23 |
+| 2. Authentication | 0/2 | Planned | - |
 | 3. Network Layer | 0/TBD | Not started | - |
 | 4. Background Refresh | 0/TBD | Not started | - |
 | 5. Widget UI | 0/TBD | Not started | - |
