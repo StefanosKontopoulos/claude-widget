@@ -63,7 +63,11 @@ Plans:
   2. After calling UsageRepository on iOS, the same values are persisted to App Group UserDefaults and readable by the widget extension
   3. A 401 or 403 response clears all stored credentials on the platform that received it
   4. The repository never crashes when extra_usage, opus, sonnet, or other nullable fields are absent from the response
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 03-01-PLAN.md — Android fetchAndStore() via OkHttp, auth-failure notification, POST_NOTIFICATIONS permission (NET-01, NET-03, NET-04, NET-05, NET-06)
+- [ ] 03-02-PLAN.md — iOS fetchAndStore() via URLSession, auth-failure notification, NetworkError enum (NET-02, NET-03, NET-04, NET-05, NET-06)
 
 ### Phase 4: Background Refresh
 **Goal**: Both platforms automatically fetch fresh usage data every 15 minutes in the background without any user action, and the widget is updated after each successful fetch
@@ -106,8 +110,8 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation | 4/4 | Complete | 2026-03-23 |
-| 2. Authentication | 0/2 | Planned | - |
-| 3. Network Layer | 0/TBD | Not started | - |
+| 2. Authentication | 2/2 | Complete | 2026-03-23 |
+| 3. Network Layer | 0/2 | Planned | - |
 | 4. Background Refresh | 0/TBD | Not started | - |
 | 5. Widget UI | 0/TBD | Not started | - |
 | 6. Integration and Documentation | 0/TBD | Not started | - |
