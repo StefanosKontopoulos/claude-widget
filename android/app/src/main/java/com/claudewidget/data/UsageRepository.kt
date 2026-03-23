@@ -1,14 +1,23 @@
 package com.claudewidget.data
 
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.content.Context
+import androidx.core.app.NotificationCompat
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.claudewidget.auth.CredentialStore
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import java.io.IOException
 
 val Context.usageDataStore: DataStore<Preferences> by preferencesDataStore(name = "usage_data")
 
@@ -53,5 +62,61 @@ object UsageRepository {
         } catch (e: Exception) {
             null
         }
+    }
+
+    // MARK: - Network
+
+    suspend fun fetchAndStore(context: Context): Result<UsageData> = withContext(Dispatchers.IO) {
+        val cookie = CredentialStore.loadSessionCookie(context)
+            ?: return@withContext Result.failure(IllegalStateException("No session cookie"))
+        val orgId = CredentialStore.loadOrgId(context)
+            ?: return@withContext Result.failure(IllegalStateException("No org ID"))
+
+        val url = "https://claude.ai/api/organizations/$orgId/usage"
+        val request = Request.Builder()
+            .url(url)
+            .addHeader("Cookie", cookie)
+            .build()
+
+        return@withContext try {
+            val response = OkHttpClient().newCall(request).execute()
+            response.use { r ->
+                when (r.code) {
+                    401, 403 -> {
+                        CredentialStore.clear(context)
+                        postAuthExpiredNotification(context)
+                        Result.failure(IOException("Auth expired: ${r.code}"))
+                    }
+                    in 200..299 -> {
+                        val body = r.body?.string()
+                            ?: return@use Result.failure(IOException("Empty response body"))
+                        val usageResponse = json.decodeFromString<UsageResponse>(body)
+                        val data = UsageData(response = usageResponse)
+                        save(context, data)
+                        Result.success(data)
+                    }
+                    else -> Result.failure(IOException("HTTP ${r.code}"))
+                }
+            }
+        } catch (e: IOException) {
+            Result.failure(e)
+        }
+    }
+
+    private fun postAuthExpiredNotification(context: Context) {
+        val channelId = "auth_expired"
+        val manager = context.getSystemService(NotificationManager::class.java)
+        val channel = NotificationChannel(
+            channelId, "Authentication Alerts", NotificationManager.IMPORTANCE_HIGH
+        )
+        manager.createNotificationChannel(channel)
+
+        val notification = NotificationCompat.Builder(context, channelId)
+            .setSmallIcon(android.R.drawable.ic_dialog_alert)
+            .setContentTitle("Claude session expired")
+            .setContentText("Tap to sign in again")
+            .setAutoCancel(true)
+            .build()
+        manager.notify(1001, notification)
     }
 }
