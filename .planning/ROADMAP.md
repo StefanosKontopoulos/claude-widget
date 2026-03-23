@@ -31,7 +31,13 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. A test write from the Android app process is readable by the widget process via DataStore
   4. A test write from the iOS main app is readable by the widget extension via App Group UserDefaults (canary round-trip passes)
   5. ISO-8601 date strings with fractional seconds parse correctly and utilization values divide by 100 to a 0.0-1.0 fraction on both platforms
-**Plans**: TBD
+**Plans**: 4 plans
+
+Plans:
+- [ ] 01-01-PLAN.md — Android Gradle project scaffold with all dependencies (SETUP-01, SETUP-04)
+- [ ] 01-02-PLAN.md — iOS Xcode project with two targets and App Groups entitlements (SETUP-02, SETUP-03)
+- [ ] 01-03-PLAN.md — Android data models, date parsing, DataStore canary test (DATA-01, DATA-03, DATA-04, DATA-05)
+- [ ] 01-04-PLAN.md — iOS data models, date parsing, App Groups canary round-trip (DATA-02, DATA-03, DATA-04, DATA-05)
 
 ### Phase 2: Authentication
 **Goal**: Users can log in to Claude.ai via WebView on both platforms, and the session cookie and org ID are correctly extracted and stored in encrypted storage ready for API calls
@@ -95,7 +101,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation | 0/TBD | Not started | - |
+| 1. Foundation | 0/4 | Not started | - |
 | 2. Authentication | 0/TBD | Not started | - |
 | 3. Network Layer | 0/TBD | Not started | - |
 | 4. Background Refresh | 0/TBD | Not started | - |
