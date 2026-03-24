@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Log
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
+import androidx.glance.appwidget.updateAll
 import com.claudewidget.data.UsageRepository
 import com.claudewidget.widget.ClaudeUsageWidget
 
