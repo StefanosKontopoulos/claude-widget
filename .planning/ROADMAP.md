@@ -97,8 +97,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 05-01-PLAN.md — Android Glance widget full UI with color-coded progress bars, three states, responsive layout, force-refresh (WDG-01, WDG-03, WDG-04, WDG-05, WDG-06, WDG-07, WDG-08, WDG-09, WDG-10, WDG-11)
-- [ ] 05-02-PLAN.md — iOS WidgetKit widget full UI with custom progress bars, three states, responsive layout, ForceRefreshIntent (WDG-02, WDG-03, WDG-04, WDG-05, WDG-06, WDG-07, WDG-08, WDG-09, WDG-10, WDG-11)
+- [x] 05-01-PLAN.md — Android Glance widget full UI with color-coded progress bars, three states, responsive layout, force-refresh (WDG-01, WDG-03, WDG-04, WDG-05, WDG-06, WDG-07, WDG-08, WDG-09, WDG-10, WDG-11)
+- [x] 05-02-PLAN.md — iOS WidgetKit widget full UI with custom progress bars, three states, responsive layout, ForceRefreshIntent (WDG-02, WDG-03, WDG-04, WDG-05, WDG-06, WDG-07, WDG-08, WDG-09, WDG-10, WDG-11)
 
 ### Phase 6: Integration and Documentation
 **Goal**: Auth expiry is handled end-to-end (widget updates to "Sign in" state on 401/403), layouts are responsive across widget sizes, and each platform has a SETUP.md covering the full developer and user setup flow
