@@ -7,8 +7,13 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkManager
 import com.claudewidget.auth.CredentialStore
 import com.claudewidget.auth.LoginActivity
+import com.claudewidget.worker.UsageFetchWorker
+import java.util.concurrent.TimeUnit
 
 class MainActivity : AppCompatActivity() {
 
@@ -41,6 +46,7 @@ class MainActivity : AppCompatActivity() {
         layout.addView(statusText)
         setContentView(layout)
         checkCredentials()
+        scheduleUsageFetch()
     }
 
     override fun onResume() {
@@ -62,6 +68,18 @@ class MainActivity : AppCompatActivity() {
     private fun launchLogin() {
         val intent = Intent(this, LoginActivity::class.java)
         loginLauncher.launch(intent)
+    }
+
+    private fun scheduleUsageFetch() {
+        val request = PeriodicWorkRequestBuilder<UsageFetchWorker>(
+            15, TimeUnit.MINUTES
+        ).build()
+        WorkManager.getInstance(this).enqueueUniquePeriodicWork(
+            UsageFetchWorker.WORK_NAME,
+            ExistingPeriodicWorkPolicy.KEEP,
+            request
+        )
+        Log.i(TAG, "WorkManager: scheduled periodic usage fetch")
     }
 
     private fun updateUI() {
