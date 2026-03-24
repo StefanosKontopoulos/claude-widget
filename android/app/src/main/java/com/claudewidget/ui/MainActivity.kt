@@ -8,6 +8,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,17 +21,16 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -48,6 +48,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.work.ExistingPeriodicWorkPolicy
@@ -65,17 +66,18 @@ import java.util.Date
 import java.util.Locale
 import java.util.concurrent.TimeUnit
 
-// Theme colors
-private val DarkBg = Color(0xFF0D0D0D)
-private val CardBg = Color(0xFF1A1A1A)
-private val CardBorder = Color(0xFF2A2A2A)
-private val GoldAccent = Color(0xFFD4A843)
-private val TextPrimary = Color(0xFFE8E8E8)
-private val TextSecondary = Color(0xFF888888)
-private val TextTertiary = Color(0xFF555555)
-private val GreenColor = Color(0xFF2ECC71)
-private val OrangeColor = Color(0xFFF39C12)
-private val RedColor = Color(0xFFE74C3C)
+// ─── Design System ──────────────────────────────────────────────────
+private val AppBg = Color(0xFF121212)
+private val CardBg = Color(0xFF1E1E24)
+private val CardBorder = Color(0x0DFFFFFF) // rgba(255,255,255,0.05)
+private val Gold = Color(0xFFE2B973)
+private val TextWhite = Color(0xFFE0E0E0)
+private val TextGrey = Color(0xFF9CA3AF)
+private val Green = Color(0xFF4ADE80)
+private val Orange = Color(0xFFFB923C)
+private val Red = Color(0xFFEF4444)
+private val TrackColor = Color(0xFF2A2A2A)
+private val DividerColor = Color(0xFF2A2A2E)
 
 class MainActivity : ComponentActivity() {
 
@@ -83,7 +85,7 @@ class MainActivity : ComponentActivity() {
         private const val TAG = "MainActivity"
     }
 
-    private val loginResult = mutableStateOf(0) // increment to trigger recomposition
+    private val loginResult = mutableStateOf(0)
 
     private val loginLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
@@ -96,7 +98,6 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         val context = this
 
         setContent {
@@ -107,7 +108,6 @@ class MainActivity : ComponentActivity() {
             var orgId by remember { mutableStateOf(CredentialStore.loadOrgId(context)) }
             val scope = rememberCoroutineScope()
 
-            // React to login completion
             LaunchedEffect(loginTrigger) {
                 isLoggedIn = CredentialStore.loadSessionCookie(context) != null
                 orgId = CredentialStore.loadOrgId(context)
@@ -121,7 +121,6 @@ class MainActivity : ComponentActivity() {
                 }
             }
 
-            // Load cached data on first launch
             LaunchedEffect(Unit) {
                 usageData = UsageRepository.getCached(context)
                 if (isLoggedIn && usageData == null) {
@@ -177,6 +176,8 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+// ─── Dashboard Screen ───────────────────────────────────────────────
+
 @Composable
 private fun DashboardScreen(
     isLoggedIn: Boolean,
@@ -187,152 +188,50 @@ private fun DashboardScreen(
     onLogout: () -> Unit,
     onRefresh: () -> Unit
 ) {
-    Surface(
-        modifier = Modifier.fillMaxSize(),
-        color = DarkBg
-    ) {
+    Surface(modifier = Modifier.fillMaxSize(), color = AppBg) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 20.dp, vertical = 16.dp)
+                .padding(horizontal = 16.dp, vertical = 16.dp)
         ) {
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(28.dp))
 
             // Header
             Text(
                 text = "Claude",
-                fontSize = 34.sp,
+                fontSize = 36.sp,
                 fontWeight = FontWeight.Bold,
-                color = GoldAccent
+                color = Gold,
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Center
             )
             Text(
                 text = "Usage Monitor",
-                fontSize = 15.sp,
-                color = TextSecondary,
-                modifier = Modifier.padding(top = 2.dp)
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Medium,
+                color = TextWhite,
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Center
             )
 
-            Spacer(modifier = Modifier.height(28.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
             if (!isLoggedIn) {
-                // Sign-in prompt
-                DashboardCard {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(28.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        // Claude icon circle
-                        Box(
-                            modifier = Modifier
-                                .size(56.dp)
-                                .clip(CircleShape)
-                                .background(CardBorder),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = "C",
-                                fontSize = 24.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = GoldAccent
-                            )
-                        }
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Text(
-                            "Sign in to view your usage",
-                            color = TextPrimary,
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Medium
-                        )
-                        Text(
-                            "Connect your Claude account to get started",
-                            color = TextSecondary,
-                            fontSize = 13.sp,
-                            modifier = Modifier.padding(top = 4.dp)
-                        )
-                        Spacer(modifier = Modifier.height(20.dp))
-                        Button(
-                            onClick = onLogin,
-                            colors = ButtonDefaults.buttonColors(containerColor = GoldAccent),
-                            shape = RoundedCornerShape(12.dp),
-                            modifier = Modifier.fillMaxWidth().height(48.dp)
-                        ) {
-                            Text(
-                                "Sign in to Claude",
-                                color = Color.Black,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 15.sp
-                            )
-                        }
-                    }
-                }
+                SignInCard(onLogin)
             } else {
-                // Usage gauges
+                // Usage section
+                SectionTitle("Usage")
                 if (usageData != null) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        UsageGaugeCard(
-                            title = "5 Hour",
-                            period = usageData.response.fiveHour,
-                            modifier = Modifier.weight(1f)
-                        )
-                        UsageGaugeCard(
-                            title = "7 Day",
-                            period = usageData.response.sevenDay,
-                            modifier = Modifier.weight(1f)
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(6.dp))
-
-                    // Updated time + refresh
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "Updated ${formatTime(usageData.fetchedAt)}",
-                            color = TextTertiary,
-                            fontSize = 12.sp
-                        )
-                        Box(
-                            modifier = Modifier
-                                .size(36.dp)
-                                .clip(CircleShape)
-                                .background(CardBg)
-                                .clickable(enabled = !isRefreshing) { onRefresh() },
-                            contentAlignment = Alignment.Center
-                        ) {
-                            if (isRefreshing) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(16.dp),
-                                    color = GoldAccent,
-                                    strokeWidth = 2.dp
-                                )
-                            } else {
-                                Text(
-                                    text = "\u21BB",
-                                    color = GoldAccent,
-                                    fontSize = 18.sp
-                                )
-                            }
-                        }
-                    }
+                    UsageCard(usageData, isRefreshing, onRefresh)
                 } else if (isRefreshing) {
-                    DashboardCard {
+                    AppCard {
                         Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(40.dp),
+                            modifier = Modifier.fillMaxWidth().padding(40.dp),
                             contentAlignment = Alignment.Center
                         ) {
                             CircularProgressIndicator(
-                                color = GoldAccent,
+                                color = Gold,
                                 strokeWidth = 2.dp,
                                 modifier = Modifier.size(32.dp)
                             )
@@ -340,78 +239,28 @@ private fun DashboardScreen(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
-                // How to add widget
-                SectionTitle("Add Widget")
-                DashboardCard {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        SetupStep(1, "Long-press on your home screen")
-                        SetupStep(2, "Tap \"Widgets\"")
-                        SetupStep(3, "Search for \"Claude Widget\"")
-                        SetupStep(4, "Drag to your home screen")
-                        Spacer(modifier = Modifier.height(12.dp))
-                        Text(
-                            "The widget auto-refreshes every 15 minutes. " +
-                                "Tap the refresh button on the widget for an instant update. " +
-                                "Tap the widget to open this app.",
-                            color = TextTertiary,
-                            fontSize = 12.sp,
-                            lineHeight = 18.sp
-                        )
+                // Two-column grid: Setup + Widget Sizes / Widget Sizes + Account
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    // Left column
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        SetupCard()
+                        WidgetSizesCard()
                     }
-                }
-
-                Spacer(modifier = Modifier.height(14.dp))
-
-                // Widget sizes
-                SectionTitle("Widget Sizes")
-                DashboardCard {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        WidgetSizeInfo(
-                            name = "Small (2\u00D72)",
-                            desc = "Compact circle gauges showing 5H and 7D usage"
-                        )
-                        Spacer(modifier = Modifier.height(10.dp))
-                        WidgetSizeInfo(
-                            name = "Medium (4\u00D72)",
-                            desc = "Progress bars with reset times and percentages"
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(14.dp))
-
-                // Account
-                SectionTitle("Account")
-                DashboardCard {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        AccountRow("Status", "Connected", GreenColor)
-                        if (orgId != null) {
-                            Spacer(modifier = Modifier.height(10.dp))
-                            AccountRow("Organization", "${orgId.take(8)}...", TextPrimary)
-                        }
-                        Spacer(modifier = Modifier.height(10.dp))
-                        AccountRow("Auto-refresh", "Every 15 min", TextPrimary)
-                        Spacer(modifier = Modifier.height(18.dp))
-                        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                            OutlinedButton(
-                                onClick = onLogin,
-                                border = BorderStroke(1.dp, CardBorder),
-                                shape = RoundedCornerShape(10.dp),
-                                modifier = Modifier.weight(1f).height(42.dp)
-                            ) {
-                                Text("Re-login", color = TextPrimary, fontSize = 13.sp)
-                            }
-                            OutlinedButton(
-                                onClick = onLogout,
-                                border = BorderStroke(1.dp, Color(0xFF3D1F1F)),
-                                shape = RoundedCornerShape(10.dp),
-                                modifier = Modifier.weight(1f).height(42.dp)
-                            ) {
-                                Text("Sign Out", color = RedColor, fontSize = 13.sp)
-                            }
-                        }
+                    // Right column
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        WidgetSizesCard()
+                        AccountCard(orgId, onLogin, onLogout)
                     }
                 }
             }
@@ -421,14 +270,15 @@ private fun DashboardScreen(
     }
 }
 
-// --- Composable building blocks ---
+// ─── Cards ──────────────────────────────────────────────────────────
 
 @Composable
-private fun DashboardCard(content: @Composable () -> Unit) {
+private fun AppCard(content: @Composable () -> Unit) {
     Surface(
         shape = RoundedCornerShape(16.dp),
         color = CardBg,
-        border = BorderStroke(1.dp, CardBorder)
+        border = BorderStroke(1.dp, CardBorder),
+        shadowElevation = 4.dp
     ) {
         content()
     }
@@ -438,132 +288,325 @@ private fun DashboardCard(content: @Composable () -> Unit) {
 private fun SectionTitle(text: String) {
     Text(
         text = text,
-        color = TextSecondary,
-        fontSize = 13.sp,
-        fontWeight = FontWeight.SemiBold,
-        letterSpacing = 0.5.sp,
-        modifier = Modifier.padding(bottom = 8.dp, start = 4.dp)
+        color = TextWhite,
+        fontSize = 14.sp,
+        fontWeight = FontWeight.Medium,
+        modifier = Modifier.padding(bottom = 8.dp, start = 2.dp)
     )
 }
 
-@Composable
-private fun UsageGaugeCard(title: String, period: UsagePeriod, modifier: Modifier = Modifier) {
-    val gaugeColor = progressColor(period.fraction)
+// ─── Sign In Card ───────────────────────────────────────────────────
 
-    DashboardCard {
+@Composable
+private fun SignInCard(onLogin: () -> Unit) {
+    AppCard {
         Column(
-            modifier = modifier.padding(16.dp),
+            modifier = Modifier.fillMaxWidth().padding(28.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(
-                text = title,
-                color = TextSecondary,
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Medium
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // Circular gauge drawn with Compose Canvas
             Box(
                 modifier = Modifier
-                    .size(100.dp)
-                    .drawBehind {
-                        val strokeWidth = 10.dp.toPx()
-                        val arcSize = size.minDimension - strokeWidth
-                        val topLeft = Offset(strokeWidth / 2, strokeWidth / 2)
-
-                        // Track
-                        drawArc(
-                            color = CardBorder,
-                            startAngle = -90f,
-                            sweepAngle = 360f,
-                            useCenter = false,
-                            topLeft = topLeft,
-                            size = Size(arcSize, arcSize),
-                            style = Stroke(width = strokeWidth, cap = StrokeCap.Round)
-                        )
-
-                        // Progress
-                        if (period.fraction > 0.01) {
-                            drawArc(
-                                color = gaugeColor,
-                                startAngle = -90f,
-                                sweepAngle = 360f * period.fraction.toFloat(),
-                                useCenter = false,
-                                topLeft = topLeft,
-                                size = Size(arcSize, arcSize),
-                                style = Stroke(width = strokeWidth, cap = StrokeCap.Round)
-                            )
-                        }
-                    },
+                    .size(56.dp)
+                    .clip(CircleShape)
+                    .background(TrackColor),
                 contentAlignment = Alignment.Center
             ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(
-                        text = "${period.percent}%",
-                        color = gaugeColor,
-                        fontSize = 26.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
+                Text("C", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Gold)
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+            Text("Sign in to view your usage", color = TextWhite, fontSize = 16.sp, fontWeight = FontWeight.Medium)
+            Text("Connect your Claude account", color = TextGrey, fontSize = 13.sp, modifier = Modifier.padding(top = 4.dp))
+            Spacer(modifier = Modifier.height(20.dp))
+            Button(
+                onClick = onLogin,
+                colors = ButtonDefaults.buttonColors(containerColor = Gold),
+                shape = RoundedCornerShape(999.dp),
+                modifier = Modifier.fillMaxWidth().height(48.dp)
+            ) {
+                Text("Sign in to Claude", color = Color.Black, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+            }
+        }
+    }
+}
+
+// ─── Usage Card (with two gauge panels + footer) ────────────────────
+
+@Composable
+private fun UsageCard(data: UsageData, isRefreshing: Boolean, onRefresh: () -> Unit) {
+    AppCard {
+        Column {
+            // Two panels side by side with divider
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(top = 16.dp, start = 16.dp, end = 16.dp)
+            ) {
+                // Left: 5 Hour gauge
+                GaugePanel(
+                    title = "5 Hour",
+                    period = data.response.fiveHour,
+                    accentColor = Green,
+                    modifier = Modifier.weight(1f)
+                )
+
+                // Vertical divider
+                Box(
+                    modifier = Modifier
+                        .width(1.dp)
+                        .height(160.dp)
+                        .background(DividerColor)
+                )
+
+                // Right: 7 Day gauge
+                GaugePanel(
+                    title = "7 Day",
+                    period = data.response.sevenDay,
+                    accentColor = Orange,
+                    modifier = Modifier.weight(1f)
+                )
             }
 
-            Spacer(modifier = Modifier.height(10.dp))
-
-            Text(
-                text = "Resets ${period.formatResetTime()}",
-                color = TextTertiary,
-                fontSize = 11.sp
-            )
+            // Footer: Updated time + Refresh
+            HorizontalDivider(color = DividerColor, thickness = 1.dp)
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 10.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Updated ${formatTime(data.fetchedAt)}",
+                    color = TextGrey,
+                    fontSize = 12.sp
+                )
+                // Circular refresh button
+                Box(
+                    modifier = Modifier
+                        .size(36.dp)
+                        .clip(CircleShape)
+                        .background(TrackColor)
+                        .clickable(enabled = !isRefreshing) { onRefresh() },
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (isRefreshing) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(16.dp),
+                            color = Gold,
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Text("\u21BB", color = Gold, fontSize = 18.sp)
+                    }
+                }
+            }
         }
     }
 }
 
 @Composable
-private fun SetupStep(number: Int, text: String) {
+private fun GaugePanel(
+    title: String,
+    period: UsagePeriod,
+    accentColor: Color,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier.padding(horizontal = 8.dp, vertical = 8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(title, color = TextGrey, fontSize = 13.sp)
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        // Circular progress ring
+        Box(
+            modifier = Modifier
+                .size(110.dp)
+                .drawBehind {
+                    val strokeW = 10.dp.toPx()
+                    val arcSize = size.minDimension - strokeW
+                    val topLeft = Offset(strokeW / 2, strokeW / 2)
+
+                    // Track
+                    drawArc(
+                        color = TrackColor,
+                        startAngle = -90f,
+                        sweepAngle = 360f,
+                        useCenter = false,
+                        topLeft = topLeft,
+                        size = Size(arcSize, arcSize),
+                        style = Stroke(width = strokeW, cap = StrokeCap.Round)
+                    )
+
+                    // Glow (wider, semi-transparent)
+                    if (period.fraction > 0.01) {
+                        drawArc(
+                            color = accentColor.copy(alpha = 0.3f),
+                            startAngle = -90f,
+                            sweepAngle = 360f * period.fraction.toFloat(),
+                            useCenter = false,
+                            topLeft = Offset(strokeW / 2 - 4.dp.toPx(), strokeW / 2 - 4.dp.toPx()),
+                            size = Size(arcSize + 8.dp.toPx(), arcSize + 8.dp.toPx()),
+                            style = Stroke(width = strokeW + 8.dp.toPx(), cap = StrokeCap.Round)
+                        )
+
+                        // Progress arc
+                        drawArc(
+                            color = accentColor,
+                            startAngle = -90f,
+                            sweepAngle = 360f * period.fraction.toFloat(),
+                            useCenter = false,
+                            topLeft = topLeft,
+                            size = Size(arcSize, arcSize),
+                            style = Stroke(width = strokeW, cap = StrokeCap.Round)
+                        )
+                    }
+                },
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = "${period.percent}%",
+                color = TextWhite,
+                fontSize = 28.sp,
+                fontWeight = FontWeight.Bold
+            )
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Text(
+            text = "Resets ${period.formatResetTime()}",
+            color = TextGrey,
+            fontSize = 11.sp
+        )
+    }
+}
+
+// ─── Setup Card ─────────────────────────────────────────────────────
+
+@Composable
+private fun SetupCard() {
+    Column {
+        Text("Setup", color = TextWhite, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+        Text("Add Widget", color = TextGrey, fontSize = 12.sp, modifier = Modifier.padding(bottom = 8.dp))
+
+        AppCard {
+            Column(modifier = Modifier.padding(14.dp)) {
+                StepItem(1, "Long-press on your home screen")
+                StepItem(2, "Tap \"Widgets\"")
+                StepItem(3, "Search for \"Claude Widget\"")
+                StepItem(4, "Drag to your home screen")
+
+                HorizontalDivider(
+                    color = DividerColor,
+                    thickness = 1.dp,
+                    modifier = Modifier.padding(top = 10.dp, bottom = 8.dp)
+                )
+
+                Text(
+                    "Auto-refreshes every 15 minutes",
+                    color = TextGrey,
+                    fontSize = 11.sp,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun StepItem(number: Int, text: String) {
     Row(
-        modifier = Modifier.padding(vertical = 4.dp),
+        modifier = Modifier.padding(vertical = 3.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
             modifier = Modifier
-                .size(24.dp)
+                .size(22.dp)
                 .clip(CircleShape)
-                .background(CardBorder),
+                .background(Gold),
             contentAlignment = Alignment.Center
         ) {
-            Text(
-                text = "$number",
-                color = GoldAccent,
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Bold
-            )
+            Text("$number", color = Color.Black, fontSize = 11.sp, fontWeight = FontWeight.Bold)
         }
-        Spacer(modifier = Modifier.width(12.dp))
-        Text(
-            text = text,
-            color = TextPrimary,
-            fontSize = 14.sp
-        )
+        Spacer(modifier = Modifier.width(10.dp))
+        Text(text, color = TextWhite, fontSize = 12.sp)
     }
 }
 
+// ─── Widget Sizes Card ──────────────────────────────────────────────
+
 @Composable
-private fun WidgetSizeInfo(name: String, desc: String) {
+private fun WidgetSizesCard() {
     Column {
-        Text(
-            text = name,
-            color = TextPrimary,
-            fontSize = 14.sp,
-            fontWeight = FontWeight.Medium
-        )
-        Text(
-            text = desc,
-            color = TextTertiary,
-            fontSize = 12.sp,
-            modifier = Modifier.padding(top = 2.dp)
-        )
+        Text("Widget Sizes", color = TextWhite, fontSize = 14.sp, fontWeight = FontWeight.Medium,
+            modifier = Modifier.padding(bottom = 8.dp))
+
+        AppCard {
+            Column(modifier = Modifier.padding(14.dp)) {
+                Text("Small (2\u00D72)", color = TextWhite, fontSize = 13.sp, fontWeight = FontWeight.Medium)
+                Text("Compact circle gauges showing 5H and 7D usage", color = TextGrey, fontSize = 11.sp,
+                    modifier = Modifier.padding(top = 2.dp))
+
+                HorizontalDivider(
+                    color = DividerColor,
+                    thickness = 1.dp,
+                    modifier = Modifier.padding(vertical = 10.dp)
+                )
+
+                Text("Medium (4\u00D72)", color = TextWhite, fontSize = 13.sp, fontWeight = FontWeight.Medium)
+                Text("Progress bars with reset times and percentages", color = TextGrey, fontSize = 11.sp,
+                    modifier = Modifier.padding(top = 2.dp))
+            }
+        }
+    }
+}
+
+// ─── Account Card ───────────────────────────────────────────────────
+
+@Composable
+private fun AccountCard(orgId: String?, onLogin: () -> Unit, onLogout: () -> Unit) {
+    Column {
+        Text("Account", color = TextWhite, fontSize = 14.sp, fontWeight = FontWeight.Medium,
+            modifier = Modifier.padding(bottom = 8.dp))
+
+        AppCard {
+            Column(modifier = Modifier.padding(14.dp)) {
+                AccountRow("Status", "Connected", Green)
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                if (orgId != null) {
+                    AccountRow("Organization", "${orgId.take(8)}...", TextWhite)
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
+
+                AccountRow("Auto-refresh", "Every 15 min", TextWhite)
+
+                Spacer(modifier = Modifier.height(14.dp))
+
+                // Buttons row
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    OutlinedButton(
+                        onClick = onLogin,
+                        border = BorderStroke(1.dp, Gold),
+                        shape = RoundedCornerShape(999.dp),
+                        modifier = Modifier.weight(1f).height(38.dp)
+                    ) {
+                        Text("Re-login", color = Gold, fontSize = 12.sp)
+                    }
+                    OutlinedButton(
+                        onClick = onLogout,
+                        border = BorderStroke(1.dp, Red),
+                        shape = RoundedCornerShape(999.dp),
+                        modifier = Modifier.weight(1f).height(38.dp)
+                    ) {
+                        Text("Sign Out", color = Red, fontSize = 12.sp)
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -573,21 +616,12 @@ private fun AccountRow(label: String, value: String, valueColor: Color) {
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Text(text = label, color = TextSecondary, fontSize = 13.sp)
-        Text(text = value, color = valueColor, fontSize = 13.sp, fontWeight = FontWeight.Medium)
+        Text(label, color = TextGrey, fontSize = 12.sp)
+        Text(value, color = valueColor, fontSize = 12.sp, fontWeight = FontWeight.Medium)
     }
 }
 
-// --- Helpers ---
-
-private fun progressColor(fraction: Double): Color {
-    return when {
-        fraction < 0.50 -> GreenColor
-        fraction < 0.75 -> Color(0xFF27AE60)
-        fraction < 0.90 -> OrangeColor
-        else -> RedColor
-    }
-}
+// ─── Helpers ────────────────────────────────────────────────────────
 
 private fun formatTime(millis: Long): String {
     return SimpleDateFormat("h:mm a", Locale.getDefault()).format(Date(millis))
