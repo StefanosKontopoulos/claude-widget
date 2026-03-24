@@ -2,6 +2,10 @@ package com.claudewidget.data
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import java.time.OffsetDateTime
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 @Serializable
 data class UsagePeriod(
@@ -15,6 +19,17 @@ data class UsagePeriod(
     /** Integer percentage for display: 0 to 100 */
     val percent: Int
         get() = utilization.toInt().coerceIn(0, 100)
+
+    /** "Mon 9:00 AM" in user's local timezone; "soon" if parsing fails */
+    fun formatResetTime(): String {
+        return try {
+            val dt = OffsetDateTime.parse(resetsAt)
+            val formatter = DateTimeFormatter.ofPattern("EEE h:mm a", Locale.getDefault())
+            dt.atZoneSameInstant(ZoneId.systemDefault()).format(formatter)
+        } catch (_: Exception) {
+            "soon"
+        }
+    }
 }
 
 @Serializable

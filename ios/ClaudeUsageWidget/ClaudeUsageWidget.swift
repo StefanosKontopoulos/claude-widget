@@ -20,10 +20,11 @@ struct Provider: TimelineProvider {
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<SimpleEntry>) -> Void) {
         Task {
-            let hasCreds = CredentialStore.loadSessionCookie() != nil
-            if hasCreds {
+            if CredentialStore.loadSessionCookie() != nil {
                 try? await UsageRepository.fetchAndStore()
             }
+            // Re-check credentials AFTER fetch -- they may have been cleared on auth failure
+            let hasCreds = CredentialStore.loadSessionCookie() != nil
             let data = UsageRepository.getCached()
             let entry = SimpleEntry(date: .now, usageData: data, hasCredentials: hasCreds)
             let nextUpdate = Calendar.current.date(byAdding: .minute, value: 15, to: .now)!

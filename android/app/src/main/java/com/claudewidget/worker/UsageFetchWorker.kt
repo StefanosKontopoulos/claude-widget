@@ -29,6 +29,12 @@ class UsageFetchWorker(
         } else {
             val error = result.exceptionOrNull()
             Log.w(TAG, "Usage fetch failed, scheduling retry", error)
+            // On auth expiry, credentials are already cleared by UsageRepository.
+            // Update widget immediately so it shows "Sign in" state.
+            if (error?.message?.contains("Auth expired") == true) {
+                Log.i(TAG, "Auth expired, updating widget to sign-in state")
+                ClaudeUsageWidget().updateAll(applicationContext)
+            }
             Result.retry()
         }
     }
