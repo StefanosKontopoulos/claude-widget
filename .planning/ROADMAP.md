@@ -81,8 +81,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 04-01-PLAN.md — Android WorkManager UsageFetchWorker, Glance widget stub, manifest receiver (BG-01, BG-02)
-- [ ] 04-02-PLAN.md — iOS TimelineProvider live fetch, BackgroundRefresh, CredentialStore access group (BG-03, BG-04, BG-05)
+- [x] 04-01-PLAN.md — Android WorkManager UsageFetchWorker, Glance widget stub, manifest receiver (BG-01, BG-02)
+- [x] 04-02-PLAN.md — iOS TimelineProvider live fetch, BackgroundRefresh, CredentialStore access group (BG-03, BG-04, BG-05)
 
 ### Phase 5: Widget UI
 **Goal**: Home screen widgets on both platforms display accurate usage information with correct colors, reset countdown, and three distinct states (not logged in, loading, stale)

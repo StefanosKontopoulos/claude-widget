@@ -44,11 +44,11 @@
 
 ### Background Refresh
 
-- [ ] **BG-01**: Android `UsageFetchWorker` as `CoroutineWorker` scheduled every 15 minutes via WorkManager
-- [ ] **BG-02**: Android worker calls `ClaudeUsageWidget.updateAll(context)` on success, returns `Result.retry()` on failure
-- [ ] **BG-03**: iOS `TimelineProvider.getTimeline()` fetches fresh data, falls back to cache on failure
-- [ ] **BG-04**: iOS timeline uses `.after` policy 15 minutes from now
-- [ ] **BG-05**: iOS `BackgroundRefresh.register()` called at app init, scheduled on `didEnterBackground`
+- [x] **BG-01**: Android `UsageFetchWorker` as `CoroutineWorker` scheduled every 15 minutes via WorkManager
+- [x] **BG-02**: Android worker calls `ClaudeUsageWidget.updateAll(context)` on success, returns `Result.retry()` on failure
+- [x] **BG-03**: iOS `TimelineProvider.getTimeline()` fetches fresh data, falls back to cache on failure
+- [x] **BG-04**: iOS timeline uses `.after` policy 15 minutes from now
+- [x] **BG-05**: iOS `BackgroundRefresh.register()` called at app init, scheduled on `didEnterBackground`
 
 ### Widget Display
 
@@ -123,11 +123,11 @@
 | NET-04 | Phase 3 | Pending |
 | NET-05 | Phase 3 | Pending |
 | NET-06 | Phase 3 | Pending |
-| BG-01 | Phase 4 | Pending |
-| BG-02 | Phase 4 | Pending |
-| BG-03 | Phase 4 | Pending |
-| BG-04 | Phase 4 | Pending |
-| BG-05 | Phase 4 | Pending |
+| BG-01 | Phase 4 | Complete |
+| BG-02 | Phase 4 | Complete |
+| BG-03 | Phase 4 | Complete |
+| BG-04 | Phase 4 | Complete |
+| BG-05 | Phase 4 | Complete |
 | WDG-01 | Phase 5 | Pending |
 | WDG-02 | Phase 5 | Pending |
 | WDG-03 | Phase 5 | Pending |
