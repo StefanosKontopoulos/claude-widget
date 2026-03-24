@@ -94,7 +94,11 @@ Plans:
   3. When no credentials are stored the widget shows "Sign in to Claude app"; when data is being fetched it shows "Loading..."; when cached data is older than 2 hours the title shows "(stale)"
   4. Both systemSmall and systemMedium sizes render on both platforms, with the medium size showing more information density than small
   5. Tapping the widget opens the host app, and a force-refresh action is available on the widget
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 05-01-PLAN.md — Android Glance widget full UI with color-coded progress bars, three states, responsive layout, force-refresh (WDG-01, WDG-03, WDG-04, WDG-05, WDG-06, WDG-07, WDG-08, WDG-09, WDG-10, WDG-11)
+- [ ] 05-02-PLAN.md — iOS WidgetKit widget full UI with custom progress bars, three states, responsive layout, ForceRefreshIntent (WDG-02, WDG-03, WDG-04, WDG-05, WDG-06, WDG-07, WDG-08, WDG-09, WDG-10, WDG-11)
 
 ### Phase 6: Integration and Documentation
 **Goal**: Auth expiry is handled end-to-end (widget updates to "Sign in" state on 401/403), layouts are responsive across widget sizes, and each platform has a SETUP.md covering the full developer and user setup flow
@@ -117,5 +121,5 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 2. Authentication | 2/2 | Complete | 2026-03-23 |
 | 3. Network Layer | 0/2 | Planned | - |
 | 4. Background Refresh | 0/2 | Planned | - |
-| 5. Widget UI | 0/TBD | Not started | - |
+| 5. Widget UI | 0/2 | Planned | - |
 | 6. Integration and Documentation | 0/TBD | Not started | - |
