@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -299,13 +300,27 @@ private fun DashboardScreen(
                             color = TextTertiary,
                             fontSize = 12.sp
                         )
-                        TextButton(onClick = onRefresh, enabled = !isRefreshing) {
-                            Text(
-                                if (isRefreshing) "Refreshing..." else "Refresh",
-                                color = if (isRefreshing) TextTertiary else GoldAccent,
-                                fontSize = 13.sp,
-                                fontWeight = FontWeight.Medium
-                            )
+                        Box(
+                            modifier = Modifier
+                                .size(36.dp)
+                                .clip(CircleShape)
+                                .background(CardBg)
+                                .clickable(enabled = !isRefreshing) { onRefresh() },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            if (isRefreshing) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(16.dp),
+                                    color = GoldAccent,
+                                    strokeWidth = 2.dp
+                                )
+                            } else {
+                                Text(
+                                    text = "\u21BB",
+                                    color = GoldAccent,
+                                    fontSize = 18.sp
+                                )
+                            }
                         }
                     }
                 } else if (isRefreshing) {

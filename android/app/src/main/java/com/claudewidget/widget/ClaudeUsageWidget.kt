@@ -4,10 +4,8 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Canvas
-import android.graphics.LinearGradient
 import android.graphics.Paint
 import android.graphics.RectF
-import android.graphics.Shader
 import android.graphics.Typeface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
@@ -51,12 +49,12 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-// Colors
+// Colors matching Canva designs
 private val BG_COLOR = Color(0xFF141414)
+private val BORDER_COLOR = Color(0xFF2A2A2A)
 private val TITLE_COLOR = Color(0xFFD4A843)
 private val TEXT_COLOR = Color(0xFFE0E0E0)
 private val TEXT_DIM = Color(0xFF777777)
-private val BAR_BG = Color(0xFF252525)
 private val CARD_BG = Color(0xFF1C1C1C)
 
 class ClaudeUsageWidget : GlanceAppWidget() {
@@ -84,19 +82,28 @@ private fun WidgetContent(hasCreds: Boolean, cached: UsageData?) {
     val size = LocalSize.current
     val isMedium = size.width >= 250.dp
 
+    // Outer box for subtle border
     Box(
         modifier = GlanceModifier
             .fillMaxSize()
-            .background(BG_COLOR)
             .cornerRadius(20.dp)
-            .clickable(actionStartActivity(Intent().setClassName("com.claudewidget", "com.claudewidget.ui.MainActivity"))),
-        contentAlignment = Alignment.Center
+            .background(BORDER_COLOR)
+            .padding(1.dp)
     ) {
-        when {
-            !hasCreds -> NotLoggedInState()
-            cached == null -> LoadingState()
-            isMedium -> MediumDataState(data = cached, isStale = isStale)
-            else -> SmallDataState(data = cached, isStale = isStale)
+        Box(
+            modifier = GlanceModifier
+                .fillMaxSize()
+                .cornerRadius(19.dp)
+                .background(BG_COLOR)
+                .clickable(actionStartActivity(Intent().setClassName("com.claudewidget", "com.claudewidget.ui.MainActivity"))),
+            contentAlignment = Alignment.Center
+        ) {
+            when {
+                !hasCreds -> NotLoggedInState()
+                cached == null -> LoadingState()
+                isMedium -> MediumDataState(data = cached, isStale = isStale)
+                else -> SmallDataState(data = cached, isStale = isStale)
+            }
         }
     }
 }
@@ -151,7 +158,7 @@ private fun LoadingState() {
     }
 }
 
-// --- SMALL WIDGET: Circle gauges via Canvas bitmaps ---
+// --- SMALL WIDGET: Circle gauges with labels + reset times (Image 2) ---
 
 @Composable
 private fun SmallDataState(data: UsageData, isStale: Boolean) {
@@ -165,7 +172,7 @@ private fun SmallDataState(data: UsageData, isStale: Boolean) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = if (isStale) "Claude \u00B7" else "Claude",
+                text = "Claude",
                 style = TextStyle(
                     color = ColorProvider(TITLE_COLOR),
                     fontWeight = FontWeight.Bold,
@@ -184,7 +191,7 @@ private fun SmallDataState(data: UsageData, isStale: Boolean) {
                 Text(
                     text = "\u21BB",
                     style = TextStyle(
-                        color = ColorProvider(TEXT_DIM),
+                        color = ColorProvider(TITLE_COLOR),
                         fontSize = 13.sp
                     )
                 )
@@ -193,18 +200,57 @@ private fun SmallDataState(data: UsageData, isStale: Boolean) {
 
         Spacer(modifier = GlanceModifier.height(2.dp))
 
+        // Gauges row with labels and reset times
         Row(
             modifier = GlanceModifier.defaultWeight().fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            CircleGauge(label = "5H", period = data.response.fiveHour)
+            // 5H gauge
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                CircleGauge(period = data.response.fiveHour)
+                Text(
+                    text = "5H",
+                    style = TextStyle(
+                        color = ColorProvider(TEXT_COLOR),
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 10.sp
+                    )
+                )
+                Text(
+                    text = "Resets ${data.response.fiveHour.formatResetTime()}",
+                    style = TextStyle(
+                        color = ColorProvider(TEXT_DIM),
+                        fontSize = 7.sp
+                    )
+                )
+            }
+
             Spacer(modifier = GlanceModifier.width(6.dp))
-            CircleGauge(label = "7D", period = data.response.sevenDay)
+
+            // 7D gauge
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                CircleGauge(period = data.response.sevenDay)
+                Text(
+                    text = "7D",
+                    style = TextStyle(
+                        color = ColorProvider(TEXT_COLOR),
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 10.sp
+                    )
+                )
+                Text(
+                    text = "Resets ${data.response.sevenDay.formatResetTime()}",
+                    style = TextStyle(
+                        color = ColorProvider(TEXT_DIM),
+                        fontSize = 7.sp
+                    )
+                )
+            }
         }
 
         Text(
-            text = formatUpdatedTime(data.fetchedAt),
+            text = "Updated ${formatUpdatedTime(data.fetchedAt)}",
             style = TextStyle(
                 color = ColorProvider(TEXT_DIM),
                 fontSize = 8.sp
@@ -214,17 +260,16 @@ private fun SmallDataState(data: UsageData, isStale: Boolean) {
 }
 
 @Composable
-private fun CircleGauge(label: String, period: UsagePeriod) {
+private fun CircleGauge(period: UsagePeriod) {
     val bitmap = drawCircleProgress(
         fraction = period.fraction.toFloat(),
         percent = period.percent,
-        label = label,
         colorInt = progressColorInt(period.fraction)
     )
 
     Image(
         provider = ImageProvider(bitmap),
-        contentDescription = "$label usage: ${period.percent}%",
+        contentDescription = "${period.percent}% usage",
         modifier = GlanceModifier.size(54.dp),
         contentScale = ContentScale.Fit
     )
@@ -233,7 +278,6 @@ private fun CircleGauge(label: String, period: UsagePeriod) {
 private fun drawCircleProgress(
     fraction: Float,
     percent: Int,
-    label: String,
     colorInt: Int
 ): Bitmap {
     val sizePx = 162 // 54dp * 3 for density
@@ -241,24 +285,24 @@ private fun drawCircleProgress(
     val canvas = Canvas(bitmap)
 
     val strokeWidth = 14f
-    val padding = strokeWidth / 2 + 4f
+    val padding = strokeWidth / 2 + 6f
     val rect = RectF(padding, padding, sizePx - padding, sizePx - padding)
 
-    // Track (background arc)
+    // Track (background ring)
     val trackPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.STROKE
         this.strokeWidth = strokeWidth
-        color = 0xFF252525.toInt()
+        color = 0xFF2A2A2A.toInt()
         strokeCap = Paint.Cap.ROUND
     }
     canvas.drawArc(rect, -90f, 360f, false, trackPaint)
 
-    // Glow effect — wider, semi-transparent arc behind the progress
+    // Glow behind progress arc
     if (fraction > 0.01f) {
         val glowPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             style = Paint.Style.STROKE
-            this.strokeWidth = strokeWidth + 8f
-            color = (colorInt and 0x00FFFFFF) or 0x20000000  // 12% alpha
+            this.strokeWidth = strokeWidth + 14f
+            color = (colorInt and 0x00FFFFFF) or 0x30000000 // 19% alpha
             strokeCap = Paint.Cap.ROUND
         }
         canvas.drawArc(rect, -90f, 360f * fraction, false, glowPaint)
@@ -275,32 +319,18 @@ private fun drawCircleProgress(
         canvas.drawArc(rect, -90f, 360f * fraction, false, progressPaint)
     }
 
-    // Percentage text
+    // Percentage text centered
     val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = colorInt
-        textSize = 40f
+        textSize = 44f
         textAlign = Paint.Align.CENTER
         typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
     }
     canvas.drawText(
         "$percent%",
         sizePx / 2f,
-        sizePx / 2f + 4f,
+        sizePx / 2f + 14f,
         textPaint
-    )
-
-    // Label below percentage
-    val labelPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = 0xFF888888.toInt()
-        textSize = 22f
-        textAlign = Paint.Align.CENTER
-        typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
-    }
-    canvas.drawText(
-        label,
-        sizePx / 2f,
-        sizePx / 2f + 30f,
-        labelPaint
     )
 
     return bitmap
@@ -315,7 +345,7 @@ private fun progressColorInt(fraction: Double): Int {
     }
 }
 
-// --- MEDIUM WIDGET: Progress bars with reset times ---
+// --- MEDIUM WIDGET: Glossy progress bars with reset times (Image 1) ---
 
 @Composable
 private fun MediumDataState(data: UsageData, isStale: Boolean) {
@@ -328,7 +358,7 @@ private fun MediumDataState(data: UsageData, isStale: Boolean) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = if (isStale) "Claude Usage \u00B7" else "Claude Usage",
+                text = "Claude Usage",
                 style = TextStyle(
                     color = ColorProvider(TITLE_COLOR),
                     fontWeight = FontWeight.Bold,
@@ -338,8 +368,8 @@ private fun MediumDataState(data: UsageData, isStale: Boolean) {
             Spacer(modifier = GlanceModifier.defaultWeight())
             Box(
                 modifier = GlanceModifier
-                    .size(24.dp)
-                    .cornerRadius(12.dp)
+                    .size(26.dp)
+                    .cornerRadius(13.dp)
                     .background(CARD_BG)
                     .clickable(actionRunCallback<ForceRefreshAction>()),
                 contentAlignment = Alignment.Center
@@ -348,7 +378,7 @@ private fun MediumDataState(data: UsageData, isStale: Boolean) {
                     text = "\u21BB",
                     style = TextStyle(
                         color = ColorProvider(TEXT_DIM),
-                        fontSize = 14.sp
+                        fontSize = 15.sp
                     )
                 )
             }
@@ -391,7 +421,7 @@ private fun UsageBarRow(label: String, period: UsagePeriod) {
             style = TextStyle(
                 color = ColorProvider(TEXT_COLOR),
                 fontWeight = FontWeight.Medium,
-                fontSize = 11.sp
+                fontSize = 12.sp
             )
         )
         Spacer(modifier = GlanceModifier.defaultWeight())
@@ -408,14 +438,14 @@ private fun UsageBarRow(label: String, period: UsagePeriod) {
             style = TextStyle(
                 color = ColorProvider(color),
                 fontWeight = FontWeight.Bold,
-                fontSize = 12.sp
+                fontSize = 13.sp
             )
         )
     }
 
-    Spacer(modifier = GlanceModifier.height(2.dp))
+    Spacer(modifier = GlanceModifier.height(3.dp))
 
-    // Custom rounded progress bar via Canvas bitmap
+    // Glossy rounded progress bar via Canvas bitmap
     val barBitmap = drawRoundedBar(
         fraction = period.fraction.toFloat(),
         colorInt = colorInt
@@ -423,7 +453,7 @@ private fun UsageBarRow(label: String, period: UsagePeriod) {
     Image(
         provider = ImageProvider(barBitmap),
         contentDescription = null,
-        modifier = GlanceModifier.fillMaxWidth().height(7.dp),
+        modifier = GlanceModifier.fillMaxWidth().height(10.dp),
         contentScale = ContentScale.FillBounds
     )
 }
@@ -432,19 +462,30 @@ private fun drawRoundedBar(
     fraction: Float,
     colorInt: Int,
     widthPx: Int = 900,
-    heightPx: Int = 24
+    heightPx: Int = 36
 ): Bitmap {
     val bitmap = Bitmap.createBitmap(widthPx, heightPx, Bitmap.Config.ARGB_8888)
     val canvas = Canvas(bitmap)
     val radius = heightPx / 2f
 
-    // Track background
-    val trackPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = 0xFF252525.toInt()
+    // Track outline
+    val outlinePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        style = Paint.Style.STROKE
+        strokeWidth = 1.5f
+        color = 0xFF333333.toInt()
     }
     canvas.drawRoundRect(
-        RectF(0f, 0f, widthPx.toFloat(), heightPx.toFloat()),
-        radius, radius, trackPaint
+        RectF(0.5f, 0.5f, widthPx - 0.5f, heightPx - 0.5f),
+        radius, radius, outlinePaint
+    )
+
+    // Track fill
+    val trackPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = 0xFF1E1E1E.toInt()
+    }
+    canvas.drawRoundRect(
+        RectF(2f, 2f, widthPx - 2f, heightPx - 2f),
+        radius - 1, radius - 1, trackPaint
     )
 
     // Progress fill
@@ -454,8 +495,17 @@ private fun drawRoundedBar(
             color = colorInt
         }
         canvas.drawRoundRect(
-            RectF(0f, 0f, fillWidth, heightPx.toFloat()),
-            radius, radius, fillPaint
+            RectF(2f, 2f, fillWidth, heightPx - 2f),
+            radius - 1, radius - 1, fillPaint
+        )
+
+        // Glossy highlight on top half of fill
+        val highlightPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = 0x20FFFFFF // 12% white
+        }
+        canvas.drawRoundRect(
+            RectF(4f, 3f, fillWidth - 2f, heightPx * 0.42f),
+            radius * 0.6f, radius * 0.6f, highlightPaint
         )
     }
 
