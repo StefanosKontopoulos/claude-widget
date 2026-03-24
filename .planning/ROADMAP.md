@@ -2,7 +2,7 @@
 
 ## Overview
 
-Two independent native codebases (Android and iOS) that share one architectural pattern: auth → network → cache → background refresh → widget renderer. The build order is dictated by dependency, not convention. Foundation must be verified first because both platforms have silent data-sharing failure modes that waste days if discovered late. Auth gates all networking. Network gates background refresh. Background refresh gates widget rendering. Integration ties everything together and ships. Both platforms proceed in parallel within each phase.
+Two independent native codebases (Android and iOS) that share one architectural pattern: auth -> network -> cache -> background refresh -> widget renderer. The build order is dictated by dependency, not convention. Foundation must be verified first because both platforms have silent data-sharing failure modes that waste days if discovered late. Auth gates all networking. Network gates background refresh. Background refresh gates widget rendering. Integration ties everything together and ships. Both platforms proceed in parallel within each phase.
 
 ## Phases
 
@@ -78,7 +78,11 @@ Plans:
   2. On Android, if the fetch fails, the worker returns Result.retry() rather than Result.failure() (visible via WorkManager logs)
   3. On iOS, TimelineProvider.getTimeline() schedules the next reload 15 minutes in the future, and falls back to cached UserDefaults data if the network call fails
   4. On iOS, BackgroundRefresh.register() is called at app init and a new timeline refresh is scheduled when the app enters the background
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 04-01-PLAN.md — Android WorkManager UsageFetchWorker, Glance widget stub, manifest receiver (BG-01, BG-02)
+- [ ] 04-02-PLAN.md — iOS TimelineProvider live fetch, BackgroundRefresh, CredentialStore access group (BG-03, BG-04, BG-05)
 
 ### Phase 5: Widget UI
 **Goal**: Home screen widgets on both platforms display accurate usage information with correct colors, reset countdown, and three distinct states (not logged in, loading, stale)
@@ -99,19 +103,19 @@ Plans:
 **Success Criteria** (what must be TRUE):
   1. When the Claude.ai session expires and the next background fetch receives a 401, credentials are cleared and the widget transitions to the "Sign in to Claude app" state without any user action required
   2. The Android SETUP.md and iOS SETUP.md each cover: how to add the widget to the home screen, the re-login flow when the session expires, and (for iOS) the App Groups Xcode setup steps
-  3. Both apps have been tested end-to-end on a real device: login → data fetch → widget displays correct usage → session expiry → widget shows sign-in state → re-login → widget resumes
+  3. Both apps have been tested end-to-end on a real device: login -> data fetch -> widget displays correct usage -> session expiry -> widget shows sign-in state -> re-login -> widget resumes
 **Plans**: TBD
 
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
+Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation | 4/4 | Complete | 2026-03-23 |
 | 2. Authentication | 2/2 | Complete | 2026-03-23 |
 | 3. Network Layer | 0/2 | Planned | - |
-| 4. Background Refresh | 0/TBD | Not started | - |
+| 4. Background Refresh | 0/2 | Planned | - |
 | 5. Widget UI | 0/TBD | Not started | - |
 | 6. Integration and Documentation | 0/TBD | Not started | - |
