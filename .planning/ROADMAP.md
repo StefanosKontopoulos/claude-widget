@@ -108,7 +108,11 @@ Plans:
   1. When the Claude.ai session expires and the next background fetch receives a 401, credentials are cleared and the widget transitions to the "Sign in to Claude app" state without any user action required
   2. The Android SETUP.md and iOS SETUP.md each cover: how to add the widget to the home screen, the re-login flow when the session expires, and (for iOS) the App Groups Xcode setup steps
   3. Both apps have been tested end-to-end on a real device: login -> data fetch -> widget displays correct usage -> session expiry -> widget shows sign-in state -> re-login -> widget resumes
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 06-01-PLAN.md — Fix auth expiry widget transition on both platforms (Android worker updateAll on 401, iOS timeline re-check creds after fetch) (DOC-01)
+- [ ] 06-02-PLAN.md — Create Android SETUP.md and iOS SETUP.md with full developer and user setup guides (DOC-01)
 
 ## Progress
 
@@ -122,4 +126,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 3. Network Layer | 0/2 | Planned | - |
 | 4. Background Refresh | 0/2 | Planned | - |
 | 5. Widget UI | 0/2 | Planned | - |
-| 6. Integration and Documentation | 0/TBD | Not started | - |
+| 6. Integration and Documentation | 0/2 | Planned | - |
