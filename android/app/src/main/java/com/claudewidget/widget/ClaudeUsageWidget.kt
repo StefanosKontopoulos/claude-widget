@@ -61,9 +61,9 @@ private val GREEN = Color(0xFF4ADE80)
 private val ORANGE = Color(0xFFFB923C)
 private val CARD_BG = Color(0xFF252530)
 
-// 3D border colors
-private val BEZEL_HIGHLIGHT = Color(0xFF3A3A44) // top edge highlight
-private val BEZEL_SHADOW = Color(0xFF0C0C10)     // bottom edge shadow
+// 3D border colors — more visible
+private val BEZEL_HIGHLIGHT = Color(0xFF4A4A56) // top edge highlight (brighter)
+private val BEZEL_SHADOW = Color(0xFF060608)     // bottom edge shadow (darker)
 
 // Int versions for Canvas
 private const val GREEN_INT = 0xFF4ADE80.toInt()
@@ -103,21 +103,21 @@ private fun WidgetContent(hasCreds: Boolean, cached: UsageData?) {
             .fillMaxSize()
             .cornerRadius(24.dp)
             .background(BEZEL_SHADOW)
-            .padding(1.dp, 1.dp, 1.dp, 2.dp)
+            .padding(2.dp, 1.dp, 2.dp, 3.dp)
     ) {
         // Top highlight (lighter, peeks at top/sides)
         Box(
             modifier = GlanceModifier
                 .fillMaxSize()
-                .cornerRadius(23.dp)
+                .cornerRadius(22.dp)
                 .background(BEZEL_HIGHLIGHT)
-                .padding(1.dp, 2.dp, 1.dp, 0.dp)
+                .padding(1.dp, 3.dp, 1.dp, 0.dp)
         ) {
             // Widget content
             Box(
                 modifier = GlanceModifier
                     .fillMaxSize()
-                    .cornerRadius(21.dp)
+                    .cornerRadius(20.dp)
                     .background(WIDGET_BG)
                     .clickable(actionStartActivity(Intent().setClassName("com.claudewidget", "com.claudewidget.ui.MainActivity"))),
                 contentAlignment = Alignment.Center
@@ -182,9 +182,9 @@ private fun SmallDataState(data: UsageData, isStale: Boolean) {
             modifier = GlanceModifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            ClaudeTitle(sizeSp = 42f, heightDp = 14)
+            ClaudeTitle(sizeSp = 54f, heightDp = 18)
             Spacer(modifier = GlanceModifier.defaultWeight())
-            SkeuomorphicRefreshButton(sizeDp = 22)
+            SkeuomorphicRefreshButton(sizeDp = 24)
         }
 
         Spacer(modifier = GlanceModifier.height(2.dp))
@@ -448,7 +448,8 @@ private fun drawSerifTitle(text: String, sizeSp: Float): Bitmap {
     val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = GOLD_INT
         textSize = sizeSp
-        typeface = Typeface.create(Typeface.SERIF, Typeface.BOLD_ITALIC)
+        typeface = Typeface.create("serif", Typeface.ITALIC)
+        isFakeBoldText = true
     }
     val textWidth = paint.measureText(text)
     val fm = paint.fontMetrics
@@ -483,42 +484,41 @@ private fun drawSkeuomorphicButton(sizePx: Int): Bitmap {
     val cx = sizePx / 2f
     val cy = sizePx / 2f
 
-    // Outer ring: gradient lighter top → darker bottom (raised look)
+    // Outer ring: brighter gradient (raised look)
     val outerPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         shader = LinearGradient(
             cx, 0f, cx, sizePx.toFloat(),
-            0xFF404048.toInt(), 0xFF1E1E26.toInt(),
+            0xFF555560.toInt(), 0xFF28282E.toInt(),
             Shader.TileMode.CLAMP
         )
     }
     canvas.drawCircle(cx, cy, sizePx / 2f, outerPaint)
 
-    // Inner circle: opposite gradient (recessed/concave look)
-    val innerR = sizePx / 2f - (sizePx * 0.12f)
+    // Inner circle: opposite gradient (recessed look), brighter
+    val innerR = sizePx / 2f - (sizePx * 0.14f)
     val innerPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         shader = LinearGradient(
             cx, cy - innerR, cx, cy + innerR,
-            0xFF1A1A22.toInt(), 0xFF2E2E38.toInt(),
+            0xFF222230.toInt(), 0xFF3A3A48.toInt(),
             Shader.TileMode.CLAMP
         )
     }
     canvas.drawCircle(cx, cy, innerR, innerPaint)
 
-    // Subtle top highlight on the outer ring for glossiness
+    // Top highlight on the outer ring for glossiness
     val glossPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = 0x15FFFFFF // 8% white
+        color = 0x22FFFFFF // 13% white
     }
     canvas.drawArc(
         RectF(2f, 2f, sizePx - 2f, sizePx - 2f),
         -160f, 140f, true, glossPaint
     )
-    // Re-draw inner circle to clip the gloss to just the ring
     canvas.drawCircle(cx, cy, innerR, innerPaint)
 
-    // Refresh icon — perfectly centered
+    // Refresh icon — bigger, centered
     val iconPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = GOLD_INT
-        textSize = sizePx * 0.38f
+        textSize = sizePx * 0.50f
         textAlign = Paint.Align.CENTER
     }
     val iconFm = iconPaint.fontMetrics
