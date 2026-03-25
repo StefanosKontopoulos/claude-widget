@@ -214,14 +214,19 @@ private fun SmallDataState(data: UsageData, isStale: Boolean) {
             )
         }
 
-        // Footer
-        Text(
-            text = "Updated ${formatUpdatedTime(data.fetchedAt)}",
-            style = TextStyle(
-                color = ColorProvider(TEXT_GREY),
-                fontSize = 8.sp
+        // Footer — centered
+        Row(
+            modifier = GlanceModifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "Updated ${formatUpdatedTime(data.fetchedAt)}",
+                style = TextStyle(
+                    color = ColorProvider(TEXT_GREY),
+                    fontSize = 8.sp
+                )
             )
-        )
+        }
     }
 }
 
@@ -245,7 +250,6 @@ private fun GaugeWithLabel(label: String, period: UsagePeriod, isGreen: Boolean)
             text = label,
             style = TextStyle(
                 color = ColorProvider(TEXT_WHITE),
-                fontWeight = FontWeight.Bold,
                 fontSize = 10.sp
             )
         )
@@ -261,8 +265,9 @@ private fun GaugeWithLabel(label: String, period: UsagePeriod, isGreen: Boolean)
 
 /**
  * Draws a circular progress gauge with glow effect.
- * Track: dark grey ring. Progress: colored arc with outer glow.
- * Center: percentage text in the accent color.
+ * Track: dark low-opacity ring matching the accent color.
+ * Progress: colored arc with outer glow.
+ * Center: percentage text in the accent color (non-bold).
  */
 private fun drawGlowingCircle(
     fraction: Float,
@@ -284,11 +289,12 @@ private fun drawGlowingCircle(
         cx + radius, cy + radius
     )
 
-    // Track ring
+    // Track ring — dark low-opacity version of the accent color
+    val trackColorInt = (colorInt and 0x00FFFFFF) or 0x30000000 // ~19% alpha of accent
     val trackPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.STROKE
         this.strokeWidth = strokeWidth
-        color = TRACK_INT
+        color = trackColorInt
         strokeCap = Paint.Cap.ROUND
     }
     canvas.drawArc(rect, -90f, 360f, false, trackPaint)
@@ -314,12 +320,12 @@ private fun drawGlowingCircle(
         canvas.drawArc(rect, -90f, 360f * fraction, false, progressPaint)
     }
 
-    // Percentage text
+    // Percentage text (non-bold)
     val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = colorInt
         textSize = 42f
         textAlign = Paint.Align.CENTER
-        typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+        typeface = Typeface.DEFAULT
     }
     val textY = cy + 14f
     canvas.drawText("$percent%", cx, textY, textPaint)
@@ -371,14 +377,19 @@ private fun MediumDataState(data: UsageData, isStale: Boolean) {
 
         Spacer(modifier = GlanceModifier.defaultWeight())
 
-        // Footer
-        Text(
-            text = "Updated ${formatUpdatedTime(data.fetchedAt)}",
-            style = TextStyle(
-                color = ColorProvider(TEXT_GREY),
-                fontSize = 9.sp
+        // Footer — centered
+        Row(
+            modifier = GlanceModifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "Updated ${formatUpdatedTime(data.fetchedAt)}",
+                style = TextStyle(
+                    color = ColorProvider(TEXT_GREY),
+                    fontSize = 9.sp
+                )
             )
-        )
+        }
     }
 }
 

@@ -220,8 +220,6 @@ private fun DashboardScreen(
             if (!isLoggedIn) {
                 SignInCard(onLogin)
             } else {
-                // Usage section
-                SectionTitle("Usage")
                 if (usageData != null) {
                     UsageCard(usageData, isRefreshing, onRefresh)
                 } else if (isRefreshing) {
@@ -334,49 +332,20 @@ private fun SignInCard(onLogin: () -> Unit) {
 @Composable
 private fun UsageCard(data: UsageData, isRefreshing: Boolean, onRefresh: () -> Unit) {
     AppCard {
-        Column {
-            // Two panels side by side with divider
+        Column(modifier = Modifier.padding(16.dp)) {
+            // Header: "Claude" + circular refresh icon button
             Row(
-                modifier = Modifier.fillMaxWidth().padding(top = 16.dp, start = 16.dp, end = 16.dp)
-            ) {
-                // Left: 5 Hour gauge
-                GaugePanel(
-                    title = "5 Hour",
-                    period = data.response.fiveHour,
-                    accentColor = Green,
-                    modifier = Modifier.weight(1f)
-                )
-
-                // Vertical divider
-                Box(
-                    modifier = Modifier
-                        .width(1.dp)
-                        .height(160.dp)
-                        .background(DividerColor)
-                )
-
-                // Right: 7 Day gauge
-                GaugePanel(
-                    title = "7 Day",
-                    period = data.response.sevenDay,
-                    accentColor = Orange,
-                    modifier = Modifier.weight(1f)
-                )
-            }
-
-            // Footer: Updated time + Refresh
-            HorizontalDivider(color = DividerColor, thickness = 1.dp)
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 10.dp),
+                modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Updated ${formatTime(data.fetchedAt)}",
-                    color = TextGrey,
-                    fontSize = 12.sp
+                    text = "Claude",
+                    color = Gold,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold
                 )
-                // Circular refresh button
+                // Circular refresh icon button
                 Box(
                     modifier = Modifier
                         .size(36.dp)
@@ -396,6 +365,37 @@ private fun UsageCard(data: UsageData, isRefreshing: Boolean, onRefresh: () -> U
                     }
                 }
             }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Two gauge panels side by side (no divider)
+            Row(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                GaugePanel(
+                    title = "5H",
+                    period = data.response.fiveHour,
+                    accentColor = Green,
+                    modifier = Modifier.weight(1f)
+                )
+                GaugePanel(
+                    title = "7D",
+                    period = data.response.sevenDay,
+                    accentColor = Orange,
+                    modifier = Modifier.weight(1f)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Footer: centered Updated text (no refresh button)
+            Text(
+                text = "Updated ${formatTime(data.fetchedAt)}",
+                color = TextGrey,
+                fontSize = 12.sp,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
+            )
         }
     }
 }
@@ -411,10 +411,6 @@ private fun GaugePanel(
         modifier = modifier.padding(horizontal = 8.dp, vertical = 8.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(title, color = TextGrey, fontSize = 13.sp)
-
-        Spacer(modifier = Modifier.height(10.dp))
-
         // Circular progress ring
         Box(
             modifier = Modifier
@@ -424,9 +420,9 @@ private fun GaugePanel(
                     val arcSize = size.minDimension - strokeW
                     val topLeft = Offset(strokeW / 2, strokeW / 2)
 
-                    // Track
+                    // Track — dark low-opacity version of the accent color
                     drawArc(
-                        color = TrackColor,
+                        color = accentColor.copy(alpha = 0.19f),
                         startAngle = -90f,
                         sweepAngle = 360f,
                         useCenter = false,
@@ -463,14 +459,17 @@ private fun GaugePanel(
         ) {
             Text(
                 text = "${period.percent}%",
-                color = TextWhite,
-                fontSize = 28.sp,
-                fontWeight = FontWeight.Bold
+                color = accentColor,
+                fontSize = 28.sp
             )
         }
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(4.dp))
 
+        // Session duration label below circle
+        Text(title, color = TextWhite, fontSize = 13.sp)
+
+        // Reset time below label
         Text(
             text = "Resets ${period.formatResetTime()}",
             color = TextGrey,
