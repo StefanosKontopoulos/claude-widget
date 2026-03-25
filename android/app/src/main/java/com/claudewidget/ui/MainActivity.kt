@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -44,6 +45,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -327,75 +329,121 @@ private fun SignInCard(onLogin: () -> Unit) {
     }
 }
 
-// ─── Usage Card (with two gauge panels + footer) ────────────────────
+// ─── Usage Card (skeuomorphic with gradient outer shell) ────────────
 
 @Composable
 private fun UsageCard(data: UsageData, isRefreshing: Boolean, onRefresh: () -> Unit) {
-    AppCard {
-        Column(modifier = Modifier.padding(16.dp)) {
-            // Header: "Claude" + circular refresh icon button
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "Claude",
-                    color = Gold,
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold
-                )
-                // Circular refresh icon button
-                Box(
-                    modifier = Modifier
-                        .size(36.dp)
-                        .clip(CircleShape)
-                        .background(TrackColor)
-                        .clickable(enabled = !isRefreshing) { onRefresh() },
-                    contentAlignment = Alignment.Center
-                ) {
-                    if (isRefreshing) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(16.dp),
-                            color = Gold,
-                            strokeWidth = 2.dp
+    // Outer shell: vertical gradient + subtle shadow for depth
+    Surface(
+        shape = RoundedCornerShape(20.dp),
+        shadowElevation = 8.dp,
+        color = Color.Transparent
+    ) {
+        Box(
+            modifier = Modifier
+                .background(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(
+                            Color(0xFF2A2A32), // lighter at top
+                            Color(0xFF1A1A22)  // fades to near-bg at bottom
                         )
-                    } else {
-                        Text("\u21BB", color = Gold, fontSize = 18.sp)
+                    )
+                )
+                .padding(6.dp) // padding between outer shell and inner card
+        ) {
+            // Inner card: low-opacity white border
+            Surface(
+                shape = RoundedCornerShape(16.dp),
+                color = CardBg,
+                border = BorderStroke(1.dp, Color(0x12FFFFFF)) // very subtle white border
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    // Header: "Claude" + skeuomorphic refresh button
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Claude",
+                            color = Gold,
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                        // Skeuomorphic refresh button: layered circles for depth
+                        Box(
+                            modifier = Modifier
+                                .size(38.dp)
+                                .clip(CircleShape)
+                                .background(
+                                    brush = Brush.verticalGradient(
+                                        colors = listOf(
+                                            Color(0xFF353540), // top highlight
+                                            Color(0xFF222228)  // bottom shadow
+                                        )
+                                    )
+                                )
+                                .clickable(enabled = !isRefreshing) { onRefresh() },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            // Inner recessed circle
+                            Box(
+                                modifier = Modifier
+                                    .size(30.dp)
+                                    .clip(CircleShape)
+                                    .background(
+                                        brush = Brush.verticalGradient(
+                                            colors = listOf(
+                                                Color(0xFF1E1E26), // top darker (recessed)
+                                                Color(0xFF2A2A34)  // bottom lighter
+                                            )
+                                        )
+                                    ),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                if (isRefreshing) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(14.dp),
+                                        color = Gold,
+                                        strokeWidth = 1.5.dp
+                                    )
+                                } else {
+                                    Text("\u21BB", color = Gold, fontSize = 16.sp)
+                                }
+                            }
+                        }
                     }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    // Two gauge panels side by side
+                    Row(modifier = Modifier.fillMaxWidth()) {
+                        GaugePanel(
+                            title = "5H",
+                            period = data.response.fiveHour,
+                            accentColor = Green,
+                            modifier = Modifier.weight(1f)
+                        )
+                        GaugePanel(
+                            title = "7D",
+                            period = data.response.sevenDay,
+                            accentColor = Orange,
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    // Footer: centered Updated text
+                    Text(
+                        text = "Updated ${formatTime(data.fetchedAt)}",
+                        color = TextGrey,
+                        fontSize = 12.sp,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    )
                 }
             }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // Two gauge panels side by side (no divider)
-            Row(
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                GaugePanel(
-                    title = "5H",
-                    period = data.response.fiveHour,
-                    accentColor = Green,
-                    modifier = Modifier.weight(1f)
-                )
-                GaugePanel(
-                    title = "7D",
-                    period = data.response.sevenDay,
-                    accentColor = Orange,
-                    modifier = Modifier.weight(1f)
-                )
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // Footer: centered Updated text (no refresh button)
-            Text(
-                text = "Updated ${formatTime(data.fetchedAt)}",
-                color = TextGrey,
-                fontSize = 12.sp,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth()
-            )
         }
     }
 }
