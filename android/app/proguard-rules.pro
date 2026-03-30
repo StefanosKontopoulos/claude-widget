@@ -19,3 +19,9 @@
 
 # EncryptedSharedPreferences / security-crypto
 -keep class androidx.security.crypto.** { *; }
+
+# Tink (used internally by security-crypto)
+-dontwarn com.google.errorprone.annotations.**
+-dontwarn com.google.api.client.**
+-dontwarn com.google.crypto.tink.util.KeysDownloader
+-keep class com.google.crypto.tink.** { *; }

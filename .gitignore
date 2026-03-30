@@ -3,6 +3,11 @@
 *.iml
 .vscode/
 
+# Android signing (never commit these)
+android/keystore.properties
+android/app/*.keystore
+android/app/*.jks
+
 # Android build
 android/.gradle/
 android/app/.gradle/
