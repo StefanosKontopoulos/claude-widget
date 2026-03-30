@@ -28,7 +28,12 @@ class LoginActivity : AppCompatActivity() {
 
         webView.settings.javaScriptEnabled = true
         webView.settings.domStorageEnabled = true
-        CookieManager.getInstance().setAcceptCookie(true)
+
+        // Clear WebView cookies so the user can choose a different account
+        val cookieManager = CookieManager.getInstance()
+        cookieManager.setAcceptCookie(true)
+        cookieManager.removeAllCookies(null)
+        cookieManager.flush()
 
         webView.webViewClient = object : WebViewClient() {
             override fun shouldInterceptRequest(

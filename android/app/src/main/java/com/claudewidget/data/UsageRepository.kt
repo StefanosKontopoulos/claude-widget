@@ -51,6 +51,11 @@ object UsageRepository {
         }
     }
 
+    /** Clear cached usage data (called on sign-out) */
+    suspend fun clearCache(context: Context) {
+        context.usageDataStore.edit { it.clear() }
+    }
+
     /** Read cached UsageData -- returns null if nothing is stored yet */
     suspend fun getCached(context: Context): UsageData? {
         val prefs = context.usageDataStore.data.first()

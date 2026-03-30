@@ -2,11 +2,16 @@ package com.claudewidget.worker
 
 import android.content.Context
 import android.util.Log
+import androidx.work.ExistingWorkPolicy
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
-import androidx.glance.appwidget.updateAll
 import com.claudewidget.data.UsageRepository
+import androidx.glance.appwidget.GlanceAppWidgetManager
 import com.claudewidget.widget.ClaudeUsageWidget
+import com.claudewidget.widget.STALE_THRESHOLD_MS
+import java.util.concurrent.TimeUnit
 
 class UsageFetchWorker(
     context: Context,
@@ -25,16 +30,26 @@ class UsageFetchWorker(
 
         return if (result.isSuccess) {
             Log.i(TAG, "Usage fetch succeeded, updating widget")
-            ClaudeUsageWidget().updateAll(applicationContext)
+            GlanceAppWidgetManager(applicationContext).getGlanceIds(ClaudeUsageWidget::class.java)
+                .forEach { ClaudeUsageWidget().update(applicationContext, it) }
+            // Schedule a stale check to re-render widget when data becomes outdated
+            val staleCheck = OneTimeWorkRequestBuilder<StaleCheckWorker>()
+                .setInitialDelay(STALE_THRESHOLD_MS, TimeUnit.MILLISECONDS)
+                .build()
+            WorkManager.getInstance(applicationContext).enqueueUniqueWork(
+                "stale_check", ExistingWorkPolicy.REPLACE, staleCheck
+            )
             Result.success()
         } else {
             val error = result.exceptionOrNull()
             Log.w(TAG, "Usage fetch failed, scheduling retry", error)
-            // On auth expiry, credentials are already cleared by UsageRepository.
-            // Update widget immediately so it shows "Sign in" state.
-            if (error?.message?.contains("Auth expired") == true) {
-                Log.i(TAG, "Auth expired, updating widget to sign-in state")
-                ClaudeUsageWidget().updateAll(applicationContext)
+            val msg = error?.message ?: ""
+            // Update widget whenever credentials are missing or expired
+            if (msg.contains("Auth expired") || msg.contains("No session cookie") || msg.contains("No org ID")) {
+                Log.i(TAG, "No credentials — updating widget to sign-in state")
+                GlanceAppWidgetManager(applicationContext).getGlanceIds(ClaudeUsageWidget::class.java)
+                .forEach { ClaudeUsageWidget().update(applicationContext, it) }
+                return Result.failure() // Don't retry — nothing will change without re-login
             }
             Result.retry()
         }

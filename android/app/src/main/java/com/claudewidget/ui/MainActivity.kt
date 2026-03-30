@@ -49,11 +49,16 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.glance.appwidget.updateAll
 import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.ExistingWorkPolicy
+import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import com.claudewidget.auth.CredentialStore
@@ -61,6 +66,8 @@ import com.claudewidget.auth.LoginActivity
 import com.claudewidget.data.UsageData
 import com.claudewidget.data.UsagePeriod
 import com.claudewidget.data.UsageRepository
+import com.claudewidget.widget.STALE_THRESHOLD_MS
+import com.claudewidget.worker.StaleCheckWorker
 import com.claudewidget.worker.UsageFetchWorker
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
@@ -71,7 +78,9 @@ import java.util.concurrent.TimeUnit
 // ─── Design System ──────────────────────────────────────────────────
 private val AppBg = Color(0xFF121212)
 private val CardBg = Color(0xFF1E1E24)
-private val CardBorder = Color(0x0DFFFFFF) // rgba(255,255,255,0.05)
+private val CardBorder = Color(0x0DFFFFFF)
+private val BezelHighlight = Color(0xFF5A5A68)
+private val BezelShadow = Color(0xFF050506)
 private val Gold = Color(0xFFE2B973)
 private val TextWhite = Color(0xFFE0E0E0)
 private val TextGrey = Color(0xFF9CA3AF)
@@ -120,6 +129,9 @@ class MainActivity : ComponentActivity() {
                         UsageRepository.fetchAndStore(context).onSuccess { usageData = it }
                         isRefreshing = false
                     }
+                    // Refresh widgets after login so they pick up new data
+                    val update = OneTimeWorkRequestBuilder<StaleCheckWorker>().build()
+                    WorkManager.getInstance(context).enqueue(update)
                 }
             }
 
@@ -141,16 +153,33 @@ class MainActivity : ComponentActivity() {
                     loginLauncher.launch(Intent(context, LoginActivity::class.java))
                 },
                 onLogout = {
-                    CredentialStore.clear(context)
-                    isLoggedIn = false
-                    usageData = null
-                    orgId = null
+                    scope.launch {
+                        CredentialStore.clear(context)
+                        UsageRepository.clearCache(context)
+                        val update = OneTimeWorkRequestBuilder<StaleCheckWorker>().build()
+                        WorkManager.getInstance(context).enqueue(update)
+                        isLoggedIn = false
+                        usageData = null
+                        orgId = null
+                    }
                 },
                 onRefresh = {
                     scope.launch {
                         isRefreshing = true
                         val result = UsageRepository.fetchAndStore(context)
-                        result.onSuccess { usageData = it }
+                        result.onSuccess {
+                            usageData = it
+                            // Update widget immediately via WorkManager (same path that already works)
+                            val immediate = OneTimeWorkRequestBuilder<StaleCheckWorker>().build()
+                            WorkManager.getInstance(context).enqueue(immediate)
+                            // Reschedule stale check from fresh fetch time
+                            val staleCheck = OneTimeWorkRequestBuilder<StaleCheckWorker>()
+                                .setInitialDelay(STALE_THRESHOLD_MS, TimeUnit.MILLISECONDS)
+                                .build()
+                            WorkManager.getInstance(context).enqueueUniqueWork(
+                                "stale_check", ExistingWorkPolicy.REPLACE, staleCheck
+                            )
+                        }
                         result.onFailure {
                             if (CredentialStore.loadSessionCookie(context) == null) {
                                 isLoggedIn = false
@@ -199,20 +228,24 @@ private fun DashboardScreen(
         ) {
             Spacer(modifier = Modifier.height(28.dp))
 
-            // Header
+            // Header — serif italic matching widget style
             Text(
                 text = "Claude",
-                fontSize = 36.sp,
+                fontSize = 42.sp,
                 fontWeight = FontWeight.Bold,
+                fontStyle = FontStyle.Italic,
+                fontFamily = FontFamily.Serif,
                 color = Gold,
                 modifier = Modifier.fillMaxWidth(),
                 textAlign = TextAlign.Center
             )
             Text(
                 text = "Usage Monitor",
-                fontSize = 16.sp,
+                fontSize = 18.sp,
                 fontWeight = FontWeight.Medium,
-                color = TextWhite,
+                fontStyle = FontStyle.Italic,
+                fontFamily = FontFamily.Serif,
+                color = TextGrey,
                 modifier = Modifier.fillMaxWidth(),
                 textAlign = TextAlign.Center
             )
@@ -241,7 +274,7 @@ private fun DashboardScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Two-column grid: Setup + Widget Sizes / Widget Sizes + Account
+                // Two-column grid
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
@@ -252,7 +285,7 @@ private fun DashboardScreen(
                         verticalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
                         SetupCard()
-                        WidgetSizesCard()
+                        SocialLinksCard()
                     }
                     // Right column
                     Column(
@@ -274,13 +307,27 @@ private fun DashboardScreen(
 
 @Composable
 private fun AppCard(content: @Composable () -> Unit) {
+    // 3D beveled border matching widget
     Surface(
-        shape = RoundedCornerShape(16.dp),
-        color = CardBg,
-        border = BorderStroke(1.dp, CardBorder),
+        shape = RoundedCornerShape(20.dp),
+        color = BezelShadow,
         shadowElevation = 4.dp
     ) {
-        content()
+        Box(modifier = Modifier.padding(start = 2.dp, top = 1.dp, end = 2.dp, bottom = 3.dp)) {
+            Surface(
+                shape = RoundedCornerShape(18.dp),
+                color = BezelHighlight
+            ) {
+                Box(modifier = Modifier.padding(start = 1.dp, top = 3.dp, end = 1.dp, bottom = 0.dp)) {
+                    Surface(
+                        shape = RoundedCornerShape(16.dp),
+                        color = CardBg
+                    ) {
+                        content()
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -329,120 +376,127 @@ private fun SignInCard(onLogin: () -> Unit) {
     }
 }
 
-// ─── Usage Card (skeuomorphic with gradient outer shell) ────────────
+// ─── Usage Card (3D beveled border matching widget) ─────────────────
 
 @Composable
 private fun UsageCard(data: UsageData, isRefreshing: Boolean, onRefresh: () -> Unit) {
-    // Outer shell: vertical gradient + subtle shadow for depth
+    // 3D beveled border: shadow layer → highlight layer → content
     Surface(
-        shape = RoundedCornerShape(20.dp),
-        shadowElevation = 8.dp,
-        color = Color.Transparent
+        shape = RoundedCornerShape(24.dp),
+        color = BezelShadow,
+        shadowElevation = 8.dp
     ) {
-        Box(
-            modifier = Modifier
-                .background(
-                    brush = Brush.verticalGradient(
-                        colors = listOf(
-                            Color(0xFF2A2A32), // lighter at top
-                            Color(0xFF1A1A22)  // fades to near-bg at bottom
-                        )
-                    )
-                )
-                .padding(6.dp) // padding between outer shell and inner card
-        ) {
-            // Inner card: low-opacity white border
+        Box(modifier = Modifier.padding(start = 3.dp, top = 1.dp, end = 3.dp, bottom = 4.dp)) {
             Surface(
-                shape = RoundedCornerShape(16.dp),
-                color = CardBg,
-                border = BorderStroke(1.dp, Color(0x12FFFFFF)) // very subtle white border
+                shape = RoundedCornerShape(21.dp),
+                color = BezelHighlight
             ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    // Header: "Claude" + skeuomorphic refresh button
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
+                Box(modifier = Modifier.padding(start = 1.dp, top = 4.dp, end = 1.dp, bottom = 0.dp)) {
+                    Surface(
+                        shape = RoundedCornerShape(20.dp),
+                        color = CardBg
                     ) {
-                        Text(
-                            text = "Claude",
-                            color = Gold,
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                        // Skeuomorphic refresh button: layered circles for depth
-                        Box(
-                            modifier = Modifier
-                                .size(38.dp)
-                                .clip(CircleShape)
-                                .background(
-                                    brush = Brush.verticalGradient(
-                                        colors = listOf(
-                                            Color(0xFF353540), // top highlight
-                                            Color(0xFF222228)  // bottom shadow
-                                        )
-                                    )
-                                )
-                                .clickable(enabled = !isRefreshing) { onRefresh() },
-                            contentAlignment = Alignment.Center
-                        ) {
-                            // Inner recessed circle
-                            Box(
-                                modifier = Modifier
-                                    .size(30.dp)
-                                    .clip(CircleShape)
-                                    .background(
-                                        brush = Brush.verticalGradient(
-                                            colors = listOf(
-                                                Color(0xFF1E1E26), // top darker (recessed)
-                                                Color(0xFF2A2A34)  // bottom lighter
-                                            )
-                                        )
-                                    ),
-                                contentAlignment = Alignment.Center
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            // Header: "Usage" + skeuomorphic refresh button
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
-                                if (isRefreshing) {
-                                    CircularProgressIndicator(
-                                        modifier = Modifier.size(14.dp),
-                                        color = Gold,
-                                        strokeWidth = 1.5.dp
-                                    )
-                                } else {
-                                    Text("\u21BB", color = Gold, fontSize = 16.sp)
-                                }
+                                Text(
+                                    text = "Usage",
+                                    color = TextWhite,
+                                    fontSize = 18.sp,
+                                    fontWeight = FontWeight.Medium
+                                )
+                                SkeuomorphicRefreshButton(isRefreshing, onRefresh)
                             }
+
+                            Spacer(modifier = Modifier.height(12.dp))
+
+                            // Two gauge panels side by side
+                            Row(modifier = Modifier.fillMaxWidth()) {
+                                GaugePanel(
+                                    title = "5H",
+                                    period = data.response.fiveHour,
+                                    accentColor = Green,
+                                    modifier = Modifier.weight(1f)
+                                )
+                                GaugePanel(
+                                    title = "7D",
+                                    period = data.response.sevenDay,
+                                    accentColor = Orange,
+                                    modifier = Modifier.weight(1f)
+                                )
+                            }
+
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            // Footer
+                            Text(
+                                text = "Updated ${formatTime(data.fetchedAt)}",
+                                color = TextGrey,
+                                fontSize = 12.sp,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.fillMaxWidth()
+                            )
                         }
                     }
+                }
+            }
+        }
+    }
+}
 
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    // Two gauge panels side by side
-                    Row(modifier = Modifier.fillMaxWidth()) {
-                        GaugePanel(
-                            title = "5H",
-                            period = data.response.fiveHour,
-                            accentColor = Green,
-                            modifier = Modifier.weight(1f)
-                        )
-                        GaugePanel(
-                            title = "7D",
-                            period = data.response.sevenDay,
-                            accentColor = Orange,
-                            modifier = Modifier.weight(1f)
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    // Footer: centered Updated text
-                    Text(
-                        text = "Updated ${formatTime(data.fetchedAt)}",
-                        color = TextGrey,
-                        fontSize = 12.sp,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth()
+@Composable
+private fun SkeuomorphicRefreshButton(isRefreshing: Boolean, onRefresh: () -> Unit) {
+    // Outer ring: raised gradient matching widget (#555560 → #28282E)
+    Box(
+        modifier = Modifier
+            .size(40.dp)
+            .clip(CircleShape)
+            .background(
+                brush = Brush.verticalGradient(
+                    colors = listOf(Color(0xFF555560), Color(0xFF28282E))
+                )
+            )
+            .clickable(enabled = !isRefreshing) { onRefresh() },
+        contentAlignment = Alignment.Center
+    ) {
+        // Gloss highlight on outer ring
+        Box(
+            modifier = Modifier
+                .size(40.dp)
+                .drawBehind {
+                    drawArc(
+                        color = Color(0x22FFFFFF),
+                        startAngle = -160f,
+                        sweepAngle = 140f,
+                        useCenter = true,
+                        size = size
                     )
                 }
+        )
+        // Inner recessed circle (#222230 → #3A3A48)
+        Box(
+            modifier = Modifier
+                .size(32.dp)
+                .clip(CircleShape)
+                .background(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(Color(0xFF222230), Color(0xFF3A3A48))
+                    )
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            if (isRefreshing) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(14.dp),
+                    color = Gold,
+                    strokeWidth = 1.5.dp
+                )
+            } else {
+                Text("\u21BB", color = Gold, fontSize = 18.sp, fontWeight = FontWeight.Bold)
             }
         }
     }
@@ -459,16 +513,21 @@ private fun GaugePanel(
         modifier = modifier.padding(horizontal = 8.dp, vertical = 8.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Circular progress ring
+        // Title above circle (matching widget layout)
+        Text(title, color = TextWhite, fontSize = 13.sp)
+
+        Spacer(modifier = Modifier.height(6.dp))
+
+        // Circular progress ring — clean, no glow
         Box(
             modifier = Modifier
-                .size(110.dp)
+                .size(120.dp)
                 .drawBehind {
                     val strokeW = 10.dp.toPx()
                     val arcSize = size.minDimension - strokeW
                     val topLeft = Offset(strokeW / 2, strokeW / 2)
 
-                    // Track — dark low-opacity version of the accent color
+                    // Track ring
                     drawArc(
                         color = accentColor.copy(alpha = 0.19f),
                         startAngle = -90f,
@@ -479,19 +538,8 @@ private fun GaugePanel(
                         style = Stroke(width = strokeW, cap = StrokeCap.Round)
                     )
 
-                    // Glow (wider, semi-transparent)
+                    // Progress arc
                     if (period.fraction > 0.01) {
-                        drawArc(
-                            color = accentColor.copy(alpha = 0.3f),
-                            startAngle = -90f,
-                            sweepAngle = 360f * period.fraction.toFloat(),
-                            useCenter = false,
-                            topLeft = Offset(strokeW / 2 - 4.dp.toPx(), strokeW / 2 - 4.dp.toPx()),
-                            size = Size(arcSize + 8.dp.toPx(), arcSize + 8.dp.toPx()),
-                            style = Stroke(width = strokeW + 8.dp.toPx(), cap = StrokeCap.Round)
-                        )
-
-                        // Progress arc
                         drawArc(
                             color = accentColor,
                             startAngle = -90f,
@@ -514,10 +562,7 @@ private fun GaugePanel(
 
         Spacer(modifier = Modifier.height(4.dp))
 
-        // Session duration label below circle
-        Text(title, color = TextWhite, fontSize = 13.sp)
-
-        // Reset time below label
+        // Reset time below circle
         Text(
             text = "Resets ${period.formatResetTime()}",
             color = TextGrey,
@@ -607,6 +652,27 @@ private fun WidgetSizesCard() {
     }
 }
 
+// ─── Social Links Card ──────────────────────────────────────────────
+
+@Composable
+private fun SocialLinksCard() {
+    Column {
+        Text("Connect", color = TextWhite, fontSize = 14.sp, fontWeight = FontWeight.Medium,
+            modifier = Modifier.padding(bottom = 8.dp))
+
+        AppCard {
+            Column(
+                modifier = Modifier.padding(14.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text("Social Links", color = TextGrey, fontSize = 12.sp)
+                Spacer(modifier = Modifier.height(8.dp))
+                Text("Coming soon", color = TextGrey.copy(alpha = 0.5f), fontSize = 11.sp)
+            }
+        }
+    }
+}
+
 // ─── Account Card ───────────────────────────────────────────────────
 
 @Composable
@@ -630,27 +696,23 @@ private fun AccountCard(orgId: String?, onLogin: () -> Unit, onLogout: () -> Uni
 
                 Spacer(modifier = Modifier.height(14.dp))
 
-                // Buttons row
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                // Buttons stacked vertically to fit in column layout
+                OutlinedButton(
+                    onClick = onLogin,
+                    border = BorderStroke(1.dp, Gold),
+                    shape = RoundedCornerShape(999.dp),
+                    modifier = Modifier.fillMaxWidth().height(36.dp)
                 ) {
-                    OutlinedButton(
-                        onClick = onLogin,
-                        border = BorderStroke(1.dp, Gold),
-                        shape = RoundedCornerShape(999.dp),
-                        modifier = Modifier.weight(1f).height(38.dp)
-                    ) {
-                        Text("Re-login", color = Gold, fontSize = 12.sp)
-                    }
-                    OutlinedButton(
-                        onClick = onLogout,
-                        border = BorderStroke(1.dp, Red),
-                        shape = RoundedCornerShape(999.dp),
-                        modifier = Modifier.weight(1f).height(38.dp)
-                    ) {
-                        Text("Sign Out", color = Red, fontSize = 12.sp)
-                    }
+                    Text("Re-login", color = Gold, fontSize = 12.sp)
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+                OutlinedButton(
+                    onClick = onLogout,
+                    border = BorderStroke(1.dp, Red),
+                    shape = RoundedCornerShape(999.dp),
+                    modifier = Modifier.fillMaxWidth().height(36.dp)
+                ) {
+                    Text("Sign Out", color = Red, fontSize = 12.sp)
                 }
             }
         }

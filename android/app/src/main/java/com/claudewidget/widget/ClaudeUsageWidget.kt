@@ -57,13 +57,15 @@ private val WIDGET_BG = Color(0xFF1E1E24)
 private val GOLD = Color(0xFFE2B973)
 private val TEXT_WHITE = Color(0xFFE0E0E0)
 private val TEXT_GREY = Color(0xFF9CA3AF)
+const val STALE_THRESHOLD_MS = 2 * 60 * 60 * 1000L // 2 hours
+
 private val GREEN = Color(0xFF4ADE80)
 private val ORANGE = Color(0xFFFB923C)
 private val CARD_BG = Color(0xFF252530)
 
 // 3D border colors — more visible
-private val BEZEL_HIGHLIGHT = Color(0xFF4A4A56) // top edge highlight (brighter)
-private val BEZEL_SHADOW = Color(0xFF060608)     // bottom edge shadow (darker)
+private val BEZEL_HIGHLIGHT = Color(0xFF5A5A68) // top edge highlight (brighter)
+private val BEZEL_SHADOW = Color(0xFF050506)     // bottom edge shadow (darker)
 
 // Int versions for Canvas
 private const val GREEN_INT = 0xFF4ADE80.toInt()
@@ -92,7 +94,7 @@ class ClaudeUsageWidget : GlanceAppWidget() {
 @Composable
 private fun WidgetContent(hasCreds: Boolean, cached: UsageData?) {
     val isStale = cached != null &&
-        (System.currentTimeMillis() - cached.fetchedAt) > 2 * 60 * 60 * 1000L
+        (System.currentTimeMillis() - cached.fetchedAt) > STALE_THRESHOLD_MS
     val size = LocalSize.current
     val isMedium = size.width >= 250.dp
 
@@ -103,15 +105,15 @@ private fun WidgetContent(hasCreds: Boolean, cached: UsageData?) {
             .fillMaxSize()
             .cornerRadius(24.dp)
             .background(BEZEL_SHADOW)
-            .padding(2.dp, 1.dp, 2.dp, 3.dp)
+            .padding(3.dp, 1.dp, 3.dp, 4.dp)
     ) {
         // Top highlight (lighter, peeks at top/sides)
         Box(
             modifier = GlanceModifier
                 .fillMaxSize()
-                .cornerRadius(22.dp)
+                .cornerRadius(21.dp)
                 .background(BEZEL_HIGHLIGHT)
-                .padding(1.dp, 3.dp, 1.dp, 0.dp)
+                .padding(1.dp, 4.dp, 1.dp, 0.dp)
         ) {
             // Widget content
             Box(
@@ -182,12 +184,12 @@ private fun SmallDataState(data: UsageData, isStale: Boolean) {
             modifier = GlanceModifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            ClaudeTitle(sizeSp = 54f, heightDp = 18)
+            ClaudeUsageTitle(sizeSp = 54f, heightDp = 28)
             Spacer(modifier = GlanceModifier.defaultWeight())
             SkeuomorphicRefreshButton(sizeDp = 24)
         }
 
-        Spacer(modifier = GlanceModifier.height(2.dp))
+        Spacer(modifier = GlanceModifier.height(1.dp))
 
         // Two circle gauges
         Row(
@@ -206,8 +208,8 @@ private fun SmallDataState(data: UsageData, isStale: Boolean) {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = "Updated ${formatUpdatedTime(data.fetchedAt)}",
-                style = TextStyle(color = ColorProvider(TEXT_GREY), fontSize = 8.sp)
+                text = if (isStale) "⚠ Data may be outdated" else "Updated ${formatUpdatedTime(data.fetchedAt)}",
+                style = TextStyle(color = ColorProvider(if (isStale) ORANGE else TEXT_GREY), fontSize = 8.sp)
             )
         }
     }
@@ -226,7 +228,7 @@ private fun GaugeWithLabel(label: String, period: UsagePeriod, isGreen: Boolean)
         Image(
             provider = ImageProvider(bitmap),
             contentDescription = "$label usage: ${period.percent}%",
-            modifier = GlanceModifier.size(60.dp),
+            modifier = GlanceModifier.size(68.dp),
             contentScale = ContentScale.Fit
         )
         Text(
@@ -304,33 +306,38 @@ private fun drawGlowingCircle(
 @Composable
 private fun MediumDataState(data: UsageData, isStale: Boolean) {
     Column(
-        modifier = GlanceModifier.fillMaxSize().padding(14.dp)
+        modifier = GlanceModifier.fillMaxSize().padding(start = 14.dp, end = 14.dp, top = 10.dp, bottom = 10.dp)
     ) {
         // Header
         Row(
             modifier = GlanceModifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            ClaudeTitle(sizeSp = 42f, heightDp = 14, suffix = " Usage")
+            ClaudeTitle(sizeSp = 56f, heightDp = 20, suffix = " Usage")
             Spacer(modifier = GlanceModifier.defaultWeight())
-            SkeuomorphicRefreshButton(sizeDp = 24)
+            SkeuomorphicRefreshButton(sizeDp = 26)
         }
 
-        Spacer(modifier = GlanceModifier.height(6.dp))
+        // Bars centered in remaining space
+        Box(
+            modifier = GlanceModifier.defaultWeight().fillMaxWidth(),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(modifier = GlanceModifier.fillMaxWidth()) {
+                BarRow(label = "5 Hour", period = data.response.fiveHour, isGreen = true)
+                Spacer(modifier = GlanceModifier.height(8.dp))
+                BarRow(label = "7 Day", period = data.response.sevenDay, isGreen = false)
+            }
+        }
 
-        BarRow(label = "5 Hour", period = data.response.fiveHour, isGreen = true)
-        Spacer(modifier = GlanceModifier.height(5.dp))
-        BarRow(label = "7 Day", period = data.response.sevenDay, isGreen = false)
-
-        Spacer(modifier = GlanceModifier.defaultWeight())
-
+        // Footer always at bottom
         Row(
             modifier = GlanceModifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = "Updated ${formatUpdatedTime(data.fetchedAt)}",
-                style = TextStyle(color = ColorProvider(TEXT_GREY), fontSize = 9.sp)
+                text = if (isStale) "⚠ Data may be outdated" else "Updated ${formatUpdatedTime(data.fetchedAt)}",
+                style = TextStyle(color = ColorProvider(if (isStale) ORANGE else TEXT_GREY), fontSize = 8.sp)
             )
         }
     }
@@ -347,27 +354,27 @@ private fun BarRow(label: String, period: UsagePeriod, isGreen: Boolean) {
     ) {
         Text(
             text = label,
-            style = TextStyle(color = ColorProvider(TEXT_WHITE), fontWeight = FontWeight.Medium, fontSize = 12.sp)
+            style = TextStyle(color = ColorProvider(TEXT_WHITE), fontWeight = FontWeight.Medium, fontSize = 14.sp)
         )
         Spacer(modifier = GlanceModifier.defaultWeight())
         Text(
             text = "Resets ${period.formatResetTime()}",
-            style = TextStyle(color = ColorProvider(TEXT_GREY), fontSize = 9.sp)
+            style = TextStyle(color = ColorProvider(TEXT_GREY), fontSize = 10.sp)
         )
         Spacer(modifier = GlanceModifier.width(6.dp))
         Text(
             text = "${period.percent}%",
-            style = TextStyle(color = ColorProvider(accentColor), fontWeight = FontWeight.Bold, fontSize = 13.sp)
+            style = TextStyle(color = ColorProvider(accentColor), fontWeight = FontWeight.Bold, fontSize = 15.sp)
         )
     }
 
-    Spacer(modifier = GlanceModifier.height(3.dp))
+    Spacer(modifier = GlanceModifier.height(4.dp))
 
     val barBitmap = drawGlowingBar(fraction = period.fraction.toFloat(), colorInt = colorInt)
     Image(
         provider = ImageProvider(barBitmap),
         contentDescription = null,
-        modifier = GlanceModifier.fillMaxWidth().height(12.dp),
+        modifier = GlanceModifier.fillMaxWidth().height(14.dp),
         contentScale = ContentScale.FillBounds
     )
 }
@@ -464,6 +471,20 @@ private fun drawSerifTitle(text: String, sizeSp: Float): Bitmap {
     return bitmap
 }
 
+/** Two-line "Claude" + indented "Usage" for small widget only */
+@Composable
+private fun ClaudeUsageTitle(sizeSp: Float, heightDp: Int) {
+    Column {
+        ClaudeTitle(sizeSp = sizeSp, heightDp = heightDp)
+        Image(
+            provider = ImageProvider(drawSerifTitle("Usage", sizeSp * 0.55f)),
+            contentDescription = "Usage",
+            modifier = GlanceModifier.height((heightDp * 0.6f).toInt().dp).padding(start = 8.dp),
+            contentScale = ContentScale.Fit
+        )
+    }
+}
+
 /** Skeuomorphic refresh button: gradient outer ring + recessed inner circle */
 @Composable
 private fun SkeuomorphicRefreshButton(sizeDp: Int) {
@@ -515,11 +536,13 @@ private fun drawSkeuomorphicButton(sizePx: Int): Bitmap {
     )
     canvas.drawCircle(cx, cy, innerR, innerPaint)
 
-    // Refresh icon — bigger, centered
+    // Refresh icon — bigger, centered, thicker
     val iconPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = GOLD_INT
         textSize = sizePx * 0.50f
         textAlign = Paint.Align.CENTER
+        strokeWidth = 2f
+        style = Paint.Style.FILL_AND_STROKE
     }
     val iconFm = iconPaint.fontMetrics
     val iconY = cy - (iconFm.ascent + iconFm.descent) / 2
