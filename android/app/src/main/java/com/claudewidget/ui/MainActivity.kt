@@ -658,18 +658,42 @@ private fun WidgetSizesCard() {
 
 @Composable
 private fun SocialLinksCard() {
+    val uriHandler = LocalUriHandler.current
     Column {
         Text("Connect", color = TextWhite, fontSize = 14.sp, fontWeight = FontWeight.Medium,
             modifier = Modifier.padding(bottom = 8.dp))
 
         AppCard {
-            Column(
-                modifier = Modifier.padding(14.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text("Social Links", color = TextGrey, fontSize = 12.sp)
-                Spacer(modifier = Modifier.height(8.dp))
-                Text("Coming soon", color = TextGrey.copy(alpha = 0.5f), fontSize = 11.sp)
+            Column(modifier = Modifier.padding(14.dp)) {
+                Text(
+                    text = "GitHub Repo",
+                    color = Gold,
+                    fontSize = 12.sp,
+                    textDecoration = TextDecoration.Underline,
+                    modifier = Modifier.clickable {
+                        uriHandler.openUri("https://github.com/StefanosKontopoulos/claude-widget")
+                    }
+                )
+                Spacer(modifier = Modifier.height(10.dp))
+                Text(
+                    text = "Feedback / Issues",
+                    color = Gold,
+                    fontSize = 12.sp,
+                    textDecoration = TextDecoration.Underline,
+                    modifier = Modifier.clickable {
+                        uriHandler.openUri("https://github.com/StefanosKontopoulos/claude-widget/issues")
+                    }
+                )
+                Spacer(modifier = Modifier.height(10.dp))
+                Text(
+                    text = "LinkedIn",
+                    color = Gold,
+                    fontSize = 12.sp,
+                    textDecoration = TextDecoration.Underline,
+                    modifier = Modifier.clickable {
+                        uriHandler.openUri("https://www.linkedin.com/in/stefanos-kontopoulos/")
+                    }
+                )
             }
         }
     }
