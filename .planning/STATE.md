@@ -105,10 +105,11 @@ All 6 phases complete. Milestone v1.0 is ready for verification.
 | 260410-oly | add social links to SocialLinksCard | 2026-04-10 | 3775da4 | [260410-oly-add-social-links-to-sociallinkscard](.planning/quick/260410-oly-add-social-links-to-sociallinkscard/) |
 | 260411-ktc | hide Google login option in LoginActivity | 2026-04-11 | 4fd0bc4 | [260411-ktc-hide-google-login-option-in-loginactivit](.planning/quick/260411-ktc-hide-google-login-option-in-loginactivit/) |
 | 260411-l5c | fix LoginActivity WebView stuck on marketing landing page | 2026-04-11 | 2db673f | [260411-l5c-fix-loginactivity-webview-stuck-on-marke](.planning/quick/260411-l5c-fix-loginactivity-webview-stuck-on-marke/) |
+| 260411-pb4 | remove onPageFinished redirect guard causing infinite reload loop | 2026-04-11 | 208df2f | [260411-pb4-remove-onpagefinished-redirect-guard-fro](.planning/quick/260411-pb4-remove-onpagefinished-redirect-guard-fro/) |
 
 ## Session Continuity
 
-Last activity: 2026-04-11 - Completed quick task 260411-l5c: fix LoginActivity WebView stuck on marketing landing page
+Last activity: 2026-04-11 - Completed quick task 260411-pb4: remove onPageFinished redirect guard from LoginActivity
 Last session: 2026-04-11
-Stopped at: Quick task 260411-l5c complete — WebView race condition fixed, redirect guard added
+Stopped at: Quick task 260411-pb4 complete — redirect guard removed, onPageFinished now only injects HIDE_GOOGLE_JS
 Resume file: None
