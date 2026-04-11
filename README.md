@@ -41,7 +41,7 @@ A native Android app that adds a home screen widget showing your Claude.ai usage
 2. On your Android phone, open **Settings → Apps → Special app access → Install unknown apps** and allow your browser or file manager to install APKs
 3. Open the downloaded APK and tap **Install**
 
-> **Note:** Android may warn that the app is from an unknown source. This is expected for any APK installed outside the Play Store. The app is open source — you can review every line of code in this repo.
+> **Note:** Android may warn that the app is from an unknown source. This is expected for any APK installed outside the Play Store. The app is completely safe open source — you can review every line of code in this repo.
 
 ### Option 2: Build from source
 
@@ -62,7 +62,7 @@ Install the APK from `app/build/outputs/apk/debug/app-debug.apk`
 
 Open the app and tap **Sign in to Claude**. A login page will appear.
 
-> **Important:** When the cookie consent prompt appears, tap **Allow** (or **Accept**). The app uses your browser session cookie to read your usage data — this prompt is part of how that works. If you dismiss it, the login will not complete.
+> **Important:** When the cookie consent prompt appears, tap **Allow** (or **Accept**). The app uses your browser session cookie to read your usage data — this prompt is part of how that works. If you dismiss it, **the login will not complete**.
 
 ### 2. Add the widget
 
