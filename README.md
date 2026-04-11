@@ -12,11 +12,11 @@ A native Android app that adds a home screen widget showing your Claude.ai usage
   <tr>
     <td align="center">
       <img src="screenshots/widget-medium.png" height="260" alt="Medium widget"/>
-      <br/><sub><b>Medium (4×2) — progress bars</b></sub>
+      <br/><sub><b>Medium (4×2) — Progress Bars</b></sub>
     </td>
     <td align="center">
       <img src="screenshots/widget-small.png" height="260" alt="Small widget"/>
-      <br/><sub><b>Small (2×2) — circular gauges</b></sub>
+      <br/><sub><b>Small (2×2) — Circular Dials</b></sub>
     </td>
   </tr>
 </table>
