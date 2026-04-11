@@ -1,0 +1,62 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Teal gradient: deep teal → bright cyan-teal -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#134E4A;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#2DD4BF;stop-opacity:1" />
+    </linearGradient>
+
+    <clipPath id="iconClip">
+      <rect width="1024" height="1024" rx="220" ry="220"/>
+    </clipPath>
+
+    <linearGradient id="shadowGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#042F2E;stop-opacity:0.55" />
+      <stop offset="100%" style="stop-color:#042F2E;stop-opacity:0" />
+    </linearGradient>
+  </defs>
+
+  <g clip-path="url(#iconClip)">
+    <!-- Background -->
+    <rect width="1024" height="1024" fill="url(#bgGrad)"/>
+
+    <!-- Horizontal stripes texture -->
+    <g opacity="0.10">
+      <rect x="0" y="48"  width="1024" height="12" fill="#042F2E"/>
+      <rect x="0" y="96"  width="1024" height="12" fill="#042F2E"/>
+      <rect x="0" y="144" width="1024" height="12" fill="#042F2E"/>
+      <rect x="0" y="192" width="1024" height="12" fill="#042F2E"/>
+      <rect x="0" y="240" width="1024" height="12" fill="#042F2E"/>
+      <rect x="0" y="288" width="1024" height="12" fill="#042F2E"/>
+      <rect x="0" y="336" width="1024" height="12" fill="#042F2E"/>
+      <rect x="0" y="384" width="1024" height="12" fill="#042F2E"/>
+      <rect x="0" y="432" width="1024" height="12" fill="#042F2E"/>
+      <rect x="0" y="480" width="1024" height="12" fill="#042F2E"/>
+      <rect x="0" y="528" width="1024" height="12" fill="#042F2E"/>
+      <rect x="0" y="576" width="1024" height="12" fill="#042F2E"/>
+      <rect x="0" y="624" width="1024" height="12" fill="#042F2E"/>
+      <rect x="0" y="672" width="1024" height="12" fill="#042F2E"/>
+      <rect x="0" y="720" width="1024" height="12" fill="#042F2E"/>
+      <rect x="0" y="768" width="1024" height="12" fill="#042F2E"/>
+      <rect x="0" y="816" width="1024" height="12" fill="#042F2E"/>
+      <rect x="0" y="864" width="1024" height="12" fill="#042F2E"/>
+      <rect x="0" y="912" width="1024" height="12" fill="#042F2E"/>
+      <rect x="0" y="960" width="1024" height="12" fill="#042F2E"/>
+    </g>
+
+    <!-- Long shadows (45° direction) -->
+    <polygon points="118,230 268,230 668,630 518,630" fill="url(#shadowGrad)"/>
+    <polygon points="318,145 468,145 868,545 718,545" fill="url(#shadowGrad)"/>
+    <polygon points="518,490 668,490 1024,846 878,846" fill="url(#shadowGrad)"/>
+    <polygon points="718,310 868,310 1024,466 1024,616 868,616" fill="url(#shadowGrad)"/>
+
+    <!-- Bar 1 (left, tall) -->
+    <rect x="118" y="230" width="150" height="600" rx="12" ry="12" fill="white"/>
+    <!-- Bar 2 (second, tallest) -->
+    <rect x="318" y="145" width="150" height="685" rx="12" ry="12" fill="white"/>
+    <!-- Bar 3 (third, shortest) -->
+    <rect x="518" y="490" width="150" height="340" rx="12" ry="12" fill="white"/>
+    <!-- Bar 4 (right, medium) -->
+    <rect x="718" y="310" width="150" height="520" rx="12" ry="12" fill="white"/>
+  </g>
+</svg>
