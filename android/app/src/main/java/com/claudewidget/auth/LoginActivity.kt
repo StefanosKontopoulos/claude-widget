@@ -91,8 +91,6 @@ class LoginActivity : AppCompatActivity() {
         // Clear WebView cookies so the user can choose a different account
         val cookieManager = CookieManager.getInstance()
         cookieManager.setAcceptCookie(true)
-        cookieManager.removeAllCookies(null)
-        cookieManager.flush()
 
         webView.webViewClient = object : WebViewClient() {
             override fun shouldInterceptRequest(
@@ -116,13 +114,32 @@ class LoginActivity : AppCompatActivity() {
             override fun onPageFinished(view: WebView?, url: String?) {
                 super.onPageFinished(view, url)
                 if (url != null && url.contains("claude.ai")) {
+                    // If claude.ai redirected us away from the login/SSO page before we
+                    // captured the org ID (e.g. stale cookies dumping us on the marketing
+                    // landing page), bounce back to /login.
+                    val isLoginPage = url.contains("/login") || url.contains("/sso")
+                    if (!isLoginPage && capturedOrgId == null && !loginHandled) {
+                        Log.w(TAG, "Redirected off login page to $url — bouncing back")
+                        view?.loadUrl(LOGIN_URL)
+                        return
+                    }
                     view?.evaluateJavascript(HIDE_GOOGLE_JS, null)
                     Log.d(TAG, "Injected Google-hide JS on $url")
                 }
             }
         }
 
-        webView.loadUrl(LOGIN_URL)
+        // Clear cache + history synchronously before we kick off cookie clearing
+        webView.clearCache(true)
+        webView.clearHistory()
+
+        // removeAllCookies is async — loadUrl MUST run inside the callback so the
+        // login page isn't loaded with stale session cookies (which cause claude.ai
+        // to redirect to its marketing landing page instead of /login).
+        cookieManager.removeAllCookies { _ ->
+            cookieManager.flush()
+            webView.loadUrl(LOGIN_URL)
+        }
     }
 
     private fun completeLogin(cookie: String) {
