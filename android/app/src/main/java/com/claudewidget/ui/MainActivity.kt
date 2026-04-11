@@ -68,6 +68,7 @@ import com.claudewidget.auth.LoginActivity
 import com.claudewidget.data.UsageData
 import com.claudewidget.data.UsagePeriod
 import com.claudewidget.data.UsageRepository
+import com.claudewidget.widget.ClaudeUsageWidget
 import com.claudewidget.widget.STALE_THRESHOLD_MS
 import com.claudewidget.worker.StaleCheckWorker
 import com.claudewidget.worker.UsageFetchWorker
@@ -132,8 +133,7 @@ class MainActivity : ComponentActivity() {
                         isRefreshing = false
                     }
                     // Refresh widgets after login so they pick up new data
-                    val update = OneTimeWorkRequestBuilder<StaleCheckWorker>().build()
-                    WorkManager.getInstance(context).enqueue(update)
+                    ClaudeUsageWidget().updateAll(context)
                 }
             }
 
@@ -158,8 +158,7 @@ class MainActivity : ComponentActivity() {
                     scope.launch {
                         CredentialStore.clear(context)
                         UsageRepository.clearCache(context)
-                        val update = OneTimeWorkRequestBuilder<StaleCheckWorker>().build()
-                        WorkManager.getInstance(context).enqueue(update)
+                        ClaudeUsageWidget().updateAll(context)
                         isLoggedIn = false
                         usageData = null
                         orgId = null
@@ -171,9 +170,8 @@ class MainActivity : ComponentActivity() {
                         val result = UsageRepository.fetchAndStore(context)
                         result.onSuccess {
                             usageData = it
-                            // Update widget immediately via WorkManager (same path that already works)
-                            val immediate = OneTimeWorkRequestBuilder<StaleCheckWorker>().build()
-                            WorkManager.getInstance(context).enqueue(immediate)
+                            // Update widget immediately
+                            ClaudeUsageWidget().updateAll(context)
                             // Reschedule stale check from fresh fetch time
                             val staleCheck = OneTimeWorkRequestBuilder<StaleCheckWorker>()
                                 .setInitialDelay(STALE_THRESHOLD_MS, TimeUnit.MILLISECONDS)
