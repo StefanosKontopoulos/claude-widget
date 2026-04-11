@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -49,6 +50,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.layout.SubcomposeLayout
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
@@ -274,28 +276,13 @@ private fun DashboardScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Two-column grid
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    // Left column
-                    Column(
-                        modifier = Modifier.weight(1f),
-                        verticalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        SetupCard()
-                        SocialLinksCard()
-                    }
-                    // Right column
-                    Column(
-                        modifier = Modifier.weight(1f),
-                        verticalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        WidgetSizesCard()
-                        AccountCard(orgId, onLogin, onLogout)
-                    }
-                }
+                // Two-column grid — SubcomposeLayout equalises Connect/Account bottom edges
+                TwoColumnGrid(
+                    setupCard = { SetupCard() },
+                    socialLinksCard = { SocialLinksCard() },
+                    widgetSizesCard = { WidgetSizesCard() },
+                    accountCard = { AccountCard(orgId, onLogin, onLogout) }
+                )
             }
 
             Spacer(modifier = Modifier.height(40.dp))
@@ -306,22 +293,30 @@ private fun DashboardScreen(
 // ─── Cards ──────────────────────────────────────────────────────────
 
 @Composable
-private fun AppCard(content: @Composable () -> Unit) {
+private fun AppCard(
+    modifier: Modifier = Modifier,
+    fillHeight: Boolean = false,
+    content: @Composable () -> Unit
+) {
+    val hMod = if (fillHeight) Modifier.fillMaxHeight() else Modifier
     // 3D beveled border matching widget
     Surface(
         shape = RoundedCornerShape(20.dp),
         color = BezelShadow,
-        shadowElevation = 4.dp
+        shadowElevation = 4.dp,
+        modifier = modifier.then(hMod)
     ) {
-        Box(modifier = Modifier.padding(start = 2.dp, top = 1.dp, end = 2.dp, bottom = 3.dp)) {
+        Box(modifier = Modifier.padding(start = 2.dp, top = 1.dp, end = 2.dp, bottom = 3.dp).then(hMod)) {
             Surface(
                 shape = RoundedCornerShape(18.dp),
-                color = BezelHighlight
+                color = BezelHighlight,
+                modifier = hMod
             ) {
-                Box(modifier = Modifier.padding(start = 1.dp, top = 3.dp, end = 1.dp, bottom = 0.dp)) {
+                Box(modifier = Modifier.padding(start = 1.dp, top = 3.dp, end = 1.dp, bottom = 0.dp).then(hMod)) {
                     Surface(
                         shape = RoundedCornerShape(16.dp),
-                        color = CardBg
+                        color = CardBg,
+                        modifier = hMod
                     ) {
                         content()
                     }
@@ -652,16 +647,59 @@ private fun WidgetSizesCard() {
     }
 }
 
+// ─── Two-Column Grid (SubcomposeLayout) ─────────────────────────────
+
+@Composable
+private fun TwoColumnGrid(
+    setupCard: @Composable () -> Unit,
+    socialLinksCard: @Composable () -> Unit,
+    widgetSizesCard: @Composable () -> Unit,
+    accountCard: @Composable () -> Unit
+) {
+    SubcomposeLayout { constraints ->
+        val gapPx = 10.dp.roundToPx()
+        val colWidth = (constraints.maxWidth - gapPx) / 2
+        val colConstraints = constraints.copy(minWidth = 0, minHeight = 0, maxWidth = colWidth)
+
+        // Pass 1: measure right column to get target height
+        val widgetSizesPlaceables = subcompose("widgetSizes", widgetSizesCard)
+            .map { it.measure(colConstraints) }
+        val accountPlaceables = subcompose("account", accountCard)
+            .map { it.measure(colConstraints) }
+        val widgetSizesHeight = widgetSizesPlaceables.maxOfOrNull { it.height } ?: 0
+        val accountHeight = accountPlaceables.maxOfOrNull { it.height } ?: 0
+        val targetHeight = widgetSizesHeight + gapPx + accountHeight
+
+        // Pass 2: measure SetupCard
+        val setupPlaceables = subcompose("setup", setupCard)
+            .map { it.measure(colConstraints) }
+        val setupHeight = setupPlaceables.maxOfOrNull { it.height } ?: 0
+
+        // Pass 3: constrain SocialLinksCard to fill the remaining slot exactly
+        val socialHeight = (targetHeight - setupHeight - gapPx).coerceAtLeast(0)
+        val socialConstraints = colConstraints.copy(minHeight = socialHeight, maxHeight = socialHeight)
+        val socialPlaceables = subcompose("social", socialLinksCard)
+            .map { it.measure(socialConstraints) }
+
+        layout(constraints.maxWidth, targetHeight) {
+            setupPlaceables.forEach { it.placeRelative(0, 0) }
+            socialPlaceables.forEach { it.placeRelative(0, setupHeight + gapPx) }
+            widgetSizesPlaceables.forEach { it.placeRelative(colWidth + gapPx, 0) }
+            accountPlaceables.forEach { it.placeRelative(colWidth + gapPx, widgetSizesHeight + gapPx) }
+        }
+    }
+}
+
 // ─── Social Links Card ──────────────────────────────────────────────
 
 @Composable
-private fun SocialLinksCard() {
+private fun SocialLinksCard(modifier: Modifier = Modifier) {
     val uriHandler = LocalUriHandler.current
-    Column {
+    Column(modifier = modifier.fillMaxWidth().fillMaxHeight()) {
         Text("Connect", color = TextWhite, fontSize = 14.sp, fontWeight = FontWeight.Medium,
             modifier = Modifier.padding(bottom = 8.dp))
 
-        AppCard {
+        AppCard(modifier = Modifier.weight(1f), fillHeight = true) {
             Column(modifier = Modifier.padding(14.dp)) {
                 Text(
                     text = "GitHub Repo",
