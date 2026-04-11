@@ -33,5 +33,14 @@ Thumbs.db
 # Claude Code local cache (worktrees, agent state)
 .claude/
 
+# AI planning artifacts (local only)
+.planning/
+CLAUDE.md
+
+# Rejected design iterations (local only)
+design/logo-option-a-purple.svg
+design/logo-option-b-coral.svg
+design/logo-option-c-teal.svg
+
 # Misc
 _vscript.js
