@@ -23,55 +23,20 @@ class LoginActivity : AppCompatActivity() {
         private const val HIDE_GOOGLE_JS = """
             (function() {
               try {
-                function hide() {
-                  try {
-                    var clickables = document.querySelectorAll('button, a, [role="button"]');
-                    for (var i = 0; i < clickables.length; i++) {
-                      var el = clickables[i];
-                      var text = (el.innerText || '').trim().toLowerCase();
-                      var matchesText = text.indexOf('google') !== -1;
-                      var matchesMedia = false;
-                      if (!matchesText) {
-                        var media = el.querySelectorAll('img, svg');
-                        for (var j = 0; j < media.length; j++) {
-                          var alt = (media[j].getAttribute('alt') || '').toLowerCase();
-                          var aria = (media[j].getAttribute('aria-label') || '').toLowerCase();
-                          if (alt.indexOf('google') !== -1 || aria.indexOf('google') !== -1) {
-                            matchesMedia = true;
-                            break;
-                          }
-                        }
-                      }
-                      if (matchesText || matchesMedia) {
-                        el.style.display = 'none';
-                        var parent = el.parentElement;
-                        if (parent) {
-                          var siblingButtons = parent.querySelectorAll(':scope > button, :scope > a, :scope > [role="button"]');
-                          if (siblingButtons.length <= 1) {
-                            parent.style.display = 'none';
-                          }
-                        }
-                      }
+                function hideGoogle() {
+                  var els = document.querySelectorAll('button, a, [role="button"]');
+                  for (var i = 0; i < els.length; i++) {
+                    var el = els[i];
+                    var text = (el.innerText || el.textContent || '').trim().toLowerCase();
+                    if (text.indexOf('google') !== -1) {
+                      el.style.setProperty('display', 'none', 'important');
                     }
-                    var dividers = document.querySelectorAll('div, span, hr');
-                    for (var k = 0; k < dividers.length; k++) {
-                      var d = dividers[k];
-                      var dt = (d.innerText || '').trim();
-                      if (dt === 'or' || dt === 'OR') {
-                        d.style.display = 'none';
-                      }
-                    }
-                  } catch (inner) {
-                    console.warn('hide() inner error', inner);
                   }
                 }
-                hide();
-                setTimeout(hide, 300);
-                setTimeout(hide, 800);
-                setTimeout(hide, 1500);
-              } catch (e) {
-                console.warn('HIDE_GOOGLE_JS failed', e);
-              }
+                hideGoogle();
+                setTimeout(hideGoogle, 500);
+                setTimeout(hideGoogle, 1500);
+              } catch(e) {}
             })();
         """
     }
