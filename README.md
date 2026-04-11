@@ -62,7 +62,7 @@ Install the APK from `app/build/outputs/apk/debug/app-debug.apk`
 
 Open the app and tap **Sign in to Claude**. A login page will appear.
 
-> **Important:** When the cookie consent prompt appears, tap **Allow** (or **Accept**). The app uses your browser session cookie to read your usage data — this prompt is part of how that works. If you dismiss it, **the login will not complete**.
+> **Important:** When the cookie consent prompt appears, tap **Allow** (or **Accept**). The app uses your browser session cookie to read your usage data — this prompt is part of how that works. If you dismiss it, **! the login will not complete !**
 
 ### 2. Add the widget
 
