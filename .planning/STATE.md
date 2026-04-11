@@ -104,10 +104,11 @@ All 6 phases complete. Milestone v1.0 is ready for verification.
 |---|-------------|------|--------|-----------|
 | 260410-oly | add social links to SocialLinksCard | 2026-04-10 | 3775da4 | [260410-oly-add-social-links-to-sociallinkscard](.planning/quick/260410-oly-add-social-links-to-sociallinkscard/) |
 | 260411-ktc | hide Google login option in LoginActivity | 2026-04-11 | 4fd0bc4 | [260411-ktc-hide-google-login-option-in-loginactivit](.planning/quick/260411-ktc-hide-google-login-option-in-loginactivit/) |
+| 260411-l5c | fix LoginActivity WebView stuck on marketing landing page | 2026-04-11 | 2db673f | [260411-l5c-fix-loginactivity-webview-stuck-on-marke](.planning/quick/260411-l5c-fix-loginactivity-webview-stuck-on-marke/) |
 
 ## Session Continuity
 
-Last activity: 2026-04-11 - Completed quick task 260411-ktc: hide Google login option in LoginActivity
+Last activity: 2026-04-11 - Completed quick task 260411-l5c: fix LoginActivity WebView stuck on marketing landing page
 Last session: 2026-04-11
-Stopped at: Quick task 260411-ktc complete — Google sign-in button hidden in LoginActivity WebView
+Stopped at: Quick task 260411-l5c complete — WebView race condition fixed, redirect guard added
 Resume file: None
