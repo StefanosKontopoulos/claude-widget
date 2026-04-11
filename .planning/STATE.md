@@ -4,7 +4,7 @@ milestone: v1.0
 milestone_name: milestone
 status: complete
 stopped_at: Phase 06 complete — all plans executed
-last_updated: "2026-03-24"
+last_updated: "2026-04-11"
 progress:
   total_phases: 6
   completed_phases: 6
@@ -103,10 +103,11 @@ All 6 phases complete. Milestone v1.0 is ready for verification.
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
 | 260410-oly | add social links to SocialLinksCard | 2026-04-10 | 3775da4 | [260410-oly-add-social-links-to-sociallinkscard](.planning/quick/260410-oly-add-social-links-to-sociallinkscard/) |
+| 260411-ktc | hide Google login option in LoginActivity | 2026-04-11 | 4fd0bc4 | [260411-ktc-hide-google-login-option-in-loginactivit](.planning/quick/260411-ktc-hide-google-login-option-in-loginactivit/) |
 
 ## Session Continuity
 
-Last activity: 2026-04-10 - Completed quick task 260410-oly: add social links to SocialLinksCard
-Last session: 2026-03-24
-Stopped at: Phase 06 complete — milestone v1.0 done
+Last activity: 2026-04-11 - Completed quick task 260411-ktc: hide Google login option in LoginActivity
+Last session: 2026-04-11
+Stopped at: Quick task 260411-ktc complete — Google sign-in button hidden in LoginActivity WebView
 Resume file: None
