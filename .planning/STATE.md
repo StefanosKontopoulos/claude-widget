@@ -107,10 +107,11 @@ All 6 phases complete. Milestone v1.0 is ready for verification.
 | 260411-l5c | fix LoginActivity WebView stuck on marketing landing page | 2026-04-11 | 2db673f | [260411-l5c-fix-loginactivity-webview-stuck-on-marke](.planning/quick/260411-l5c-fix-loginactivity-webview-stuck-on-marke/) |
 | 260411-pb4 | remove onPageFinished redirect guard causing infinite reload loop | 2026-04-11 | 208df2f | [260411-pb4-remove-onpagefinished-redirect-guard-fro](.planning/quick/260411-pb4-remove-onpagefinished-redirect-guard-fro/) |
 | 260411-q6y | hide orphaned OR-divider in hideGoogle() | 2026-04-11 | 5351738 | [260411-q6y-hide-orphaned-or-divider-in-hide-google-](.planning/quick/260411-q6y-hide-orphaned-or-divider-in-hide-google-/) |
+| 260411-qmk | replace WorkManager StaleCheckWorker immediate enqueues with direct updateAll | 2026-04-11 | 0dfec4a | [260411-qmk-replace-workmanager-stalecheckworker-imm](.planning/quick/260411-qmk-replace-workmanager-stalecheckworker-imm/) |
 
 ## Session Continuity
 
-Last activity: 2026-04-11 - Completed quick task 260411-q6y: hide orphaned OR-divider in hideGoogle()
+Last activity: 2026-04-11 - Completed quick task 260411-qmk: replace WorkManager StaleCheckWorker immediate enqueues with direct updateAll
 Last session: 2026-04-11
-Stopped at: Quick task 260411-q6y complete — OR-divider hiding loop added to HIDE_GOOGLE_JS
+Stopped at: Quick task 260411-qmk complete — direct ClaudeUsageWidget().updateAll(context) calls in all three immediate-update sites
 Resume file: None
