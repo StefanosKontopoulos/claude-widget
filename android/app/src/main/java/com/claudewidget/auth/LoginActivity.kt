@@ -114,15 +114,6 @@ class LoginActivity : AppCompatActivity() {
             override fun onPageFinished(view: WebView?, url: String?) {
                 super.onPageFinished(view, url)
                 if (url != null && url.contains("claude.ai")) {
-                    // If claude.ai redirected us away from the login/SSO page before we
-                    // captured the org ID (e.g. stale cookies dumping us on the marketing
-                    // landing page), bounce back to /login.
-                    val isLoginPage = url.contains("/login") || url.contains("/sso")
-                    if (!isLoginPage && capturedOrgId == null && !loginHandled) {
-                        Log.w(TAG, "Redirected off login page to $url — bouncing back")
-                        view?.loadUrl(LOGIN_URL)
-                        return
-                    }
                     view?.evaluateJavascript(HIDE_GOOGLE_JS, null)
                     Log.d(TAG, "Injected Google-hide JS on $url")
                 }
