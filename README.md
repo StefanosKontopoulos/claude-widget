@@ -8,14 +8,18 @@ A native Android app that adds a home screen widget showing your Claude.ai usage
 
 ## Widgets
 
-<p align="center">
-  <img src="screenshots/widget-medium.png" width="420" alt="Medium widget — progress bars"/>
-  &nbsp;&nbsp;
-  <img src="screenshots/widget-small.png" width="240" alt="Small widget — circular gauges"/>
-</p>
-
-**Medium (4×2)** — Progress bars with reset times and percentages  
-**Small (2×2)** — Circular gauges showing 5-hour and 7-day usage
+<table align="center" border="0" cellspacing="0" cellpadding="16">
+  <tr>
+    <td align="center">
+      <img src="screenshots/widget-medium.png" height="260" alt="Medium widget"/>
+      <br/><sub><b>Medium (4×2) — progress bars</b></sub>
+    </td>
+    <td align="center">
+      <img src="screenshots/widget-small.png" height="260" alt="Small widget"/>
+      <br/><sub><b>Small (2×2) — circular gauges</b></sub>
+    </td>
+  </tr>
+</table>
 
 ---
 
