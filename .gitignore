@@ -30,5 +30,8 @@ ios/*.xcodeproj/xcuserdata/
 .DS_Store
 Thumbs.db
 
+# Claude Code local cache (worktrees, agent state)
+.claude/
+
 # Misc
 _vscript.js
