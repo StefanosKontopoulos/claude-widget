@@ -32,6 +32,13 @@ class LoginActivity : AppCompatActivity() {
                       el.style.setProperty('display', 'none', 'important');
                     }
                   }
+                  var dividers = document.querySelectorAll('p, span, div');
+                  for (var j = 0; j < dividers.length; j++) {
+                    var txt = (dividers[j].innerText || dividers[j].textContent || '').trim();
+                    if (txt === 'OR' || txt === 'or' || txt === 'Or') {
+                      dividers[j].style.setProperty('display', 'none', 'important');
+                    }
+                  }
                 }
                 hideGoogle();
                 setTimeout(hideGoogle, 500);
