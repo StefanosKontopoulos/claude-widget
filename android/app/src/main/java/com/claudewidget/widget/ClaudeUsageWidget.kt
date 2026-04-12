@@ -98,6 +98,8 @@ private fun WidgetContent(hasCreds: Boolean, cached: UsageData?) {
     val size = LocalSize.current
     val isMedium = size.width >= 250.dp
 
+    // Outer transparent margin keeps bezel clear of Samsung One UI's system clip boundary
+    Box(modifier = GlanceModifier.fillMaxSize().padding(3.dp)) {
     // 3D beveled border: shadow layer → highlight layer → content
     // Bottom shadow (darker, peeks at bottom/sides)
     Box(
@@ -133,6 +135,7 @@ private fun WidgetContent(hasCreds: Boolean, cached: UsageData?) {
             }
         }
     }
+    } // end outer margin Box
 }
 
 @Composable
