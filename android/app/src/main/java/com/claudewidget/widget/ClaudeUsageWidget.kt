@@ -236,7 +236,7 @@ private fun GaugeWithLabel(label: String, period: UsagePeriod, isGreen: Boolean,
             style = TextStyle(color = ColorProvider(TEXT_WHITE), fontSize = labelFontSp.sp)
         )
         Text(
-            text = "Resets ${period.formatResetTime()}",
+            text = period.formatResetTime(),
             style = TextStyle(color = ColorProvider(TEXT_GREY), fontSize = resetFontSp.sp)
         )
     }
