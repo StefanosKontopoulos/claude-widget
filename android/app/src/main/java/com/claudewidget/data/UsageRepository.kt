@@ -103,7 +103,7 @@ object UsageRepository {
                     else -> Result.failure(IOException("HTTP ${r.code}"))
                 }
             }
-        } catch (e: IOException) {
+        } catch (e: Exception) {
             Result.failure(e)
         }
     }
