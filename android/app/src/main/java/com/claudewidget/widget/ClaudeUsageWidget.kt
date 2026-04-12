@@ -215,6 +215,9 @@ private fun SmallDataState(data: UsageData, isStale: Boolean) {
 @Composable
 private fun GaugeWithLabel(label: String, period: UsagePeriod, isGreen: Boolean, sizeDp: Int = 56) {
     val colorInt = if (isGreen) GREEN_INT else ORANGE_INT
+    // Scale label and reset text proportionally to the gauge size
+    val labelFontSp = (sizeDp * 0.18f).coerceIn(8f, 13f)
+    val resetFontSp = (sizeDp * 0.11f).coerceIn(5f, 9f)
 
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         val bitmap = drawGlowingCircle(
@@ -230,11 +233,11 @@ private fun GaugeWithLabel(label: String, period: UsagePeriod, isGreen: Boolean,
         )
         Text(
             text = label,
-            style = TextStyle(color = ColorProvider(TEXT_WHITE), fontSize = 10.sp)
+            style = TextStyle(color = ColorProvider(TEXT_WHITE), fontSize = labelFontSp.sp)
         )
         Text(
             text = "Resets ${period.formatResetTime()}",
-            style = TextStyle(color = ColorProvider(TEXT_GREY), fontSize = 7.sp)
+            style = TextStyle(color = ColorProvider(TEXT_GREY), fontSize = resetFontSp.sp)
         )
     }
 }
