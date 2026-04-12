@@ -170,8 +170,13 @@ private fun LoadingState() {
 @Composable
 private fun SmallDataState(data: UsageData, isStale: Boolean) {
     val size = LocalSize.current
+    val w = size.width.value
     // 8dp padding each side + 6dp spacer between gauges = 22dp overhead
-    val gaugeSizeDp = ((size.width.value - 22f) / 2f).toInt().coerceIn(40, 80)
+    val gaugeSizeDp = ((w - 22f) / 2f).toInt().coerceIn(40, 80)
+    val titleSizeSp = (w * 0.38f).coerceIn(28f, 60f)
+    val titleHeightDp = (w * 0.19f).toInt().coerceIn(18, 34)
+    val refreshButtonDp = (w * 0.17f).toInt().coerceIn(16, 30)
+    val footerFontSp = (w * 0.055f).coerceIn(6f, 10f)
     Column(
         modifier = GlanceModifier.fillMaxSize().padding(8.dp),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -181,9 +186,9 @@ private fun SmallDataState(data: UsageData, isStale: Boolean) {
             modifier = GlanceModifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            ClaudeUsageTitle(sizeSp = 54f, heightDp = 28)
+            ClaudeUsageTitle(sizeSp = titleSizeSp, heightDp = titleHeightDp)
             Spacer(modifier = GlanceModifier.defaultWeight())
-            SkeuomorphicRefreshButton(sizeDp = 24)
+            SkeuomorphicRefreshButton(sizeDp = refreshButtonDp)
         }
 
         Spacer(modifier = GlanceModifier.height(1.dp))
@@ -206,7 +211,7 @@ private fun SmallDataState(data: UsageData, isStale: Boolean) {
         ) {
             Text(
                 text = if (isStale) "⚠ Data may be outdated" else "Updated ${formatUpdatedTime(data.fetchedAt)}",
-                style = TextStyle(color = ColorProvider(if (isStale) ORANGE else TEXT_GREY), fontSize = 8.sp)
+                style = TextStyle(color = ColorProvider(if (isStale) ORANGE else TEXT_GREY), fontSize = footerFontSp.sp)
             )
         }
     }
@@ -305,6 +310,17 @@ private fun drawGlowingCircle(
 
 @Composable
 private fun MediumDataState(data: UsageData, isStale: Boolean) {
+    val size = LocalSize.current
+    val w = size.width.value
+    val h = size.height.value
+    val titleSizeSp = (w * 0.22f).coerceIn(24f, 64f)
+    val titleHeightDp = (h * 0.18f).toInt().coerceIn(16, 30)
+    val refreshButtonDp = (w * 0.10f).toInt().coerceIn(18, 34)
+    val labelFontSp = (w * 0.056f).coerceIn(10f, 18f)
+    val resetFontSp = (w * 0.040f).coerceIn(8f, 13f)
+    val percentFontSp = (w * 0.060f).coerceIn(11f, 20f)
+    val barHeightDp = (h * 0.10f).toInt().coerceIn(8, 20)
+    val footerFontSp = (w * 0.032f).coerceIn(6f, 10f)
     Column(
         modifier = GlanceModifier.fillMaxSize().padding(start = 14.dp, end = 14.dp, top = 10.dp, bottom = 10.dp)
     ) {
@@ -313,9 +329,9 @@ private fun MediumDataState(data: UsageData, isStale: Boolean) {
             modifier = GlanceModifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            ClaudeTitle(sizeSp = 56f, heightDp = 20, suffix = " Usage")
+            ClaudeTitle(sizeSp = titleSizeSp, heightDp = titleHeightDp, suffix = " Usage")
             Spacer(modifier = GlanceModifier.defaultWeight())
-            SkeuomorphicRefreshButton(sizeDp = 26)
+            SkeuomorphicRefreshButton(sizeDp = refreshButtonDp)
         }
 
         // Bars centered in remaining space
@@ -324,9 +340,9 @@ private fun MediumDataState(data: UsageData, isStale: Boolean) {
             contentAlignment = Alignment.Center
         ) {
             Column(modifier = GlanceModifier.fillMaxWidth()) {
-                BarRow(label = "5 Hour", period = data.response.fiveHour, isGreen = true)
+                BarRow(label = "5 Hour", period = data.response.fiveHour, isGreen = true, labelFontSp = labelFontSp, resetFontSp = resetFontSp, percentFontSp = percentFontSp, barHeightDp = barHeightDp)
                 Spacer(modifier = GlanceModifier.height(8.dp))
-                BarRow(label = "7 Day", period = data.response.sevenDay, isGreen = false)
+                BarRow(label = "7 Day", period = data.response.sevenDay, isGreen = false, labelFontSp = labelFontSp, resetFontSp = resetFontSp, percentFontSp = percentFontSp, barHeightDp = barHeightDp)
             }
         }
 
@@ -337,14 +353,22 @@ private fun MediumDataState(data: UsageData, isStale: Boolean) {
         ) {
             Text(
                 text = if (isStale) "⚠ Data may be outdated" else "Updated ${formatUpdatedTime(data.fetchedAt)}",
-                style = TextStyle(color = ColorProvider(if (isStale) ORANGE else TEXT_GREY), fontSize = 8.sp)
+                style = TextStyle(color = ColorProvider(if (isStale) ORANGE else TEXT_GREY), fontSize = footerFontSp.sp)
             )
         }
     }
 }
 
 @Composable
-private fun BarRow(label: String, period: UsagePeriod, isGreen: Boolean) {
+private fun BarRow(
+    label: String,
+    period: UsagePeriod,
+    isGreen: Boolean,
+    labelFontSp: Float = 14f,
+    resetFontSp: Float = 10f,
+    percentFontSp: Float = 15f,
+    barHeightDp: Int = 14
+) {
     val accentColor = if (isGreen) GREEN else ORANGE
     val colorInt = if (isGreen) GREEN_INT else ORANGE_INT
 
@@ -354,17 +378,17 @@ private fun BarRow(label: String, period: UsagePeriod, isGreen: Boolean) {
     ) {
         Text(
             text = label,
-            style = TextStyle(color = ColorProvider(TEXT_WHITE), fontWeight = FontWeight.Medium, fontSize = 14.sp)
+            style = TextStyle(color = ColorProvider(TEXT_WHITE), fontWeight = FontWeight.Medium, fontSize = labelFontSp.sp)
         )
         Spacer(modifier = GlanceModifier.defaultWeight())
         Text(
             text = "Resets ${period.formatResetTime()}",
-            style = TextStyle(color = ColorProvider(TEXT_GREY), fontSize = 10.sp)
+            style = TextStyle(color = ColorProvider(TEXT_GREY), fontSize = resetFontSp.sp)
         )
         Spacer(modifier = GlanceModifier.width(6.dp))
         Text(
             text = "${period.percent}%",
-            style = TextStyle(color = ColorProvider(accentColor), fontWeight = FontWeight.Bold, fontSize = 15.sp)
+            style = TextStyle(color = ColorProvider(accentColor), fontWeight = FontWeight.Bold, fontSize = percentFontSp.sp)
         )
     }
 
@@ -374,7 +398,7 @@ private fun BarRow(label: String, period: UsagePeriod, isGreen: Boolean) {
     Image(
         provider = ImageProvider(barBitmap),
         contentDescription = null,
-        modifier = GlanceModifier.fillMaxWidth().height(14.dp),
+        modifier = GlanceModifier.fillMaxWidth().height(barHeightDp.dp),
         contentScale = ContentScale.FillBounds
     )
 }
