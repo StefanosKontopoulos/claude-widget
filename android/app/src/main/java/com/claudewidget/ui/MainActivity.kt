@@ -700,7 +700,7 @@ private fun SocialLinksCard(modifier: Modifier = Modifier) {
             modifier = Modifier.padding(bottom = 8.dp))
 
         AppCard(modifier = Modifier.fillMaxWidth().weight(1f), fillHeight = true) {
-            Column(modifier = Modifier.padding(14.dp)) {
+            Column(modifier = Modifier.fillMaxWidth().padding(14.dp)) {
                 Text(
                     text = "🐙 GitHub Repo",
                     color = Gold,
