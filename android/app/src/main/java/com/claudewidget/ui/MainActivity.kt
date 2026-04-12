@@ -702,7 +702,7 @@ private fun SocialLinksCard(modifier: Modifier = Modifier) {
         AppCard(modifier = Modifier.fillMaxWidth().weight(1f), fillHeight = true) {
             Column(modifier = Modifier.fillMaxWidth().padding(14.dp)) {
                 Text(
-                    text = "🐙 GitHub Repo",
+                    text = "🐙 • GitHub Repo",
                     color = Gold,
                     fontSize = 12.sp,
                     textDecoration = TextDecoration.Underline,
@@ -712,7 +712,7 @@ private fun SocialLinksCard(modifier: Modifier = Modifier) {
                 )
                 Spacer(modifier = Modifier.height(10.dp))
                 Text(
-                    text = "🐛 Feedback / Issues",
+                    text = "🐛 • Feedback / Issues",
                     color = Gold,
                     fontSize = 12.sp,
                     textDecoration = TextDecoration.Underline,
@@ -722,7 +722,7 @@ private fun SocialLinksCard(modifier: Modifier = Modifier) {
                 )
                 Spacer(modifier = Modifier.height(10.dp))
                 Text(
-                    text = "💼 LinkedIn",
+                    text = "💼 • LinkedIn",
                     color = Gold,
                     fontSize = 12.sp,
                     textDecoration = TextDecoration.Underline,
