@@ -76,8 +76,8 @@ private const val WIDGET_BG_INT = 0xFF1E1E24.toInt()
 class ClaudeUsageWidget : GlanceAppWidget() {
 
     companion object {
-        private val SMALL = DpSize(120.dp, 120.dp)
-        private val MEDIUM = DpSize(250.dp, 120.dp)
+        private val SMALL = DpSize(110.dp, 110.dp)
+        private val MEDIUM = DpSize(250.dp, 110.dp)
     }
 
     override val sizeMode = SizeMode.Responsive(setOf(SMALL, MEDIUM))
