@@ -699,7 +699,7 @@ private fun SocialLinksCard(modifier: Modifier = Modifier) {
         Text("Connect", color = TextWhite, fontSize = 14.sp, fontWeight = FontWeight.Medium,
             modifier = Modifier.padding(bottom = 8.dp))
 
-        AppCard(modifier = Modifier.weight(1f), fillHeight = true) {
+        AppCard(modifier = Modifier.fillMaxWidth().weight(1f), fillHeight = true) {
             Column(modifier = Modifier.padding(14.dp)) {
                 Text(
                     text = "🐙 GitHub Repo",
