@@ -10,7 +10,7 @@ import java.util.Locale
 @Serializable
 data class UsagePeriod(
     val utilization: Double,
-    @SerialName("resets_at") val resetsAt: String
+    @SerialName("resets_at") val resetsAt: String?
 ) {
     /** Progress bar fraction: 0.0 to 1.0 */
     val fraction: Double
@@ -20,10 +20,11 @@ data class UsagePeriod(
     val percent: Int
         get() = utilization.toInt().coerceIn(0, 100)
 
-    /** "Mon 9:00 AM" in user's local timezone; "soon" if parsing fails */
+    /** "Mon 9:00 AM" in user's local timezone; "soon" if parsing fails or resets_at is null */
     fun formatResetTime(): String {
+        val raw = resetsAt ?: return "soon"
         return try {
-            val dt = OffsetDateTime.parse(resetsAt)
+            val dt = OffsetDateTime.parse(raw)
             val formatter = DateTimeFormatter.ofPattern("EEE h:mm a", Locale.getDefault())
             dt.atZoneSameInstant(ZoneId.systemDefault()).format(formatter)
         } catch (_: Exception) {
