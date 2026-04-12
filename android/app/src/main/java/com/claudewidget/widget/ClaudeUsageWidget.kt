@@ -12,7 +12,6 @@ import android.graphics.Shader
 import android.graphics.Typeface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.glance.GlanceId
@@ -75,12 +74,7 @@ private const val WIDGET_BG_INT = 0xFF1E1E24.toInt()
 
 class ClaudeUsageWidget : GlanceAppWidget() {
 
-    companion object {
-        private val SMALL = DpSize(110.dp, 110.dp)
-        private val MEDIUM = DpSize(250.dp, 110.dp)
-    }
-
-    override val sizeMode = SizeMode.Responsive(setOf(SMALL, MEDIUM))
+    override val sizeMode = SizeMode.Exact
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         val hasCreds = CredentialStore.loadSessionCookie(context) != null
@@ -175,6 +169,9 @@ private fun LoadingState() {
 
 @Composable
 private fun SmallDataState(data: UsageData, isStale: Boolean) {
+    val size = LocalSize.current
+    // 8dp padding each side + 6dp spacer between gauges = 22dp overhead
+    val gaugeSizeDp = ((size.width.value - 22f) / 2f).toInt().coerceIn(40, 80)
     Column(
         modifier = GlanceModifier.fillMaxSize().padding(8.dp),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -197,9 +194,9 @@ private fun SmallDataState(data: UsageData, isStale: Boolean) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            GaugeWithLabel(label = "5H", period = data.response.fiveHour, isGreen = true)
+            GaugeWithLabel(label = "5H", period = data.response.fiveHour, isGreen = true, sizeDp = gaugeSizeDp)
             Spacer(modifier = GlanceModifier.width(6.dp))
-            GaugeWithLabel(label = "7D", period = data.response.sevenDay, isGreen = false)
+            GaugeWithLabel(label = "7D", period = data.response.sevenDay, isGreen = false, sizeDp = gaugeSizeDp)
         }
 
         // Footer
@@ -216,7 +213,7 @@ private fun SmallDataState(data: UsageData, isStale: Boolean) {
 }
 
 @Composable
-private fun GaugeWithLabel(label: String, period: UsagePeriod, isGreen: Boolean) {
+private fun GaugeWithLabel(label: String, period: UsagePeriod, isGreen: Boolean, sizeDp: Int = 56) {
     val colorInt = if (isGreen) GREEN_INT else ORANGE_INT
 
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -228,7 +225,7 @@ private fun GaugeWithLabel(label: String, period: UsagePeriod, isGreen: Boolean)
         Image(
             provider = ImageProvider(bitmap),
             contentDescription = "$label usage: ${period.percent}%",
-            modifier = GlanceModifier.size(56.dp),
+            modifier = GlanceModifier.size(sizeDp.dp),
             contentScale = ContentScale.Fit
         )
         Text(
