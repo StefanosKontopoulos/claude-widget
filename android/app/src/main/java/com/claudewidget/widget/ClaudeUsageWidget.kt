@@ -98,8 +98,6 @@ private fun WidgetContent(hasCreds: Boolean, cached: UsageData?) {
     val size = LocalSize.current
     val isMedium = size.width >= 250.dp
 
-    // Outer transparent margin keeps bezel clear of Samsung One UI's system clip boundary
-    Box(modifier = GlanceModifier.fillMaxSize().padding(3.dp)) {
     // 3D beveled border: shadow layer → highlight layer → content
     // Bottom shadow (darker, peeks at bottom/sides)
     Box(
@@ -135,7 +133,6 @@ private fun WidgetContent(hasCreds: Boolean, cached: UsageData?) {
             }
         }
     }
-    } // end outer margin Box
 }
 
 @Composable
@@ -231,7 +228,7 @@ private fun GaugeWithLabel(label: String, period: UsagePeriod, isGreen: Boolean)
         Image(
             provider = ImageProvider(bitmap),
             contentDescription = "$label usage: ${period.percent}%",
-            modifier = GlanceModifier.size(68.dp),
+            modifier = GlanceModifier.size(56.dp),
             contentScale = ContentScale.Fit
         )
         Text(
