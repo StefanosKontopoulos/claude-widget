@@ -20,15 +20,15 @@ data class UsagePeriod(
     val percent: Int
         get() = utilization.toInt().coerceIn(0, 100)
 
-    /** "Mon 9:00 AM" in user's local timezone; "soon" if parsing fails or resets_at is null */
+    /** "Mon 9:00 AM" in user's local timezone; "—" if resets_at is null (0% usage) or unparseable */
     fun formatResetTime(): String {
-        val raw = resetsAt ?: return "soon"
+        val raw = resetsAt ?: return "—"
         return try {
             val dt = OffsetDateTime.parse(raw)
             val formatter = DateTimeFormatter.ofPattern("EEE h:mm a", Locale.getDefault())
             dt.atZoneSameInstant(ZoneId.systemDefault()).format(formatter)
         } catch (_: Exception) {
-            "soon"
+            "—"
         }
     }
 }
