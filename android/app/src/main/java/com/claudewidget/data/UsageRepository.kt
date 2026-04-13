@@ -15,6 +15,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
+import okhttp3.CertificatePinner
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.io.IOException
@@ -28,6 +29,17 @@ object UsageRepository {
     private val KEY_CANARY = stringPreferencesKey("canary")
 
     private val json = Json { ignoreUnknownKeys = true }
+
+    private val httpClient = OkHttpClient.Builder()
+        .certificatePinner(
+            CertificatePinner.Builder()
+                .add("claude.ai", "sha256/NYbU7PBwV4y9J67c4guWTki8FJ+uudrXL0a4V4aRcrg=") // Let's Encrypt E5
+                .add("claude.ai", "sha256/0Bbh/jEZSKymTy3kTOhsmlHKBB32EDu1KojrP3YfV9c=") // Let's Encrypt E6
+                .add("claude.ai", "sha256/y7xVm0TVJNahMr2sZydE2jQH8SquXV9yLF9seROHHHU=") // Let's Encrypt E7
+                .add("claude.ai", "sha256/iFvwVyJSxnQdyaUvUERIf+8qk7gRze3612JMwoO3zdU=") // Let's Encrypt E8 (current)
+                .build()
+        )
+        .build()
 
     /** Write a test value -- used in Phase 1 to verify DataStore is accessible */
     suspend fun writeCanary(context: Context, value: String) {
@@ -84,7 +96,7 @@ object UsageRepository {
             .build()
 
         return@withContext try {
-            val response = OkHttpClient().newCall(request).execute()
+            val response = httpClient.newCall(request).execute()
             response.use { r ->
                 when (r.code) {
                     401, 403 -> {
