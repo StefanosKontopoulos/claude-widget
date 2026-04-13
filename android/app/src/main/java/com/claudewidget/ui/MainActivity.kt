@@ -59,7 +59,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.glance.appwidget.updateAll
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
@@ -70,8 +69,8 @@ import com.claudewidget.auth.LoginActivity
 import com.claudewidget.data.UsageData
 import com.claudewidget.data.UsagePeriod
 import com.claudewidget.data.UsageRepository
-import com.claudewidget.widget.ClaudeUsageWidget
 import com.claudewidget.widget.STALE_THRESHOLD_MS
+import com.claudewidget.widget.forceWidgetUpdate
 import com.claudewidget.worker.StaleCheckWorker
 import com.claudewidget.worker.UsageFetchWorker
 import kotlinx.coroutines.launch
@@ -135,7 +134,7 @@ class MainActivity : ComponentActivity() {
                         isRefreshing = false
                     }
                     // Refresh widgets after login so they pick up new data
-                    ClaudeUsageWidget().updateAll(context)
+                    forceWidgetUpdate(context)
                 }
             }
 
@@ -160,7 +159,7 @@ class MainActivity : ComponentActivity() {
                     scope.launch {
                         CredentialStore.clear(context)
                         UsageRepository.clearCache(context)
-                        ClaudeUsageWidget().updateAll(context)
+                        forceWidgetUpdate(context)
                         isLoggedIn = false
                         usageData = null
                         orgId = null
@@ -173,7 +172,7 @@ class MainActivity : ComponentActivity() {
                         result.onSuccess {
                             usageData = it
                             // Update widget immediately
-                            ClaudeUsageWidget().updateAll(context)
+                            forceWidgetUpdate(context)
                             // Reschedule stale check from fresh fetch time
                             val staleCheck = OneTimeWorkRequestBuilder<StaleCheckWorker>()
                                 .setInitialDelay(STALE_THRESHOLD_MS, TimeUnit.MILLISECONDS)

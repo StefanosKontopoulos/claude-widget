@@ -1,10 +1,9 @@
 package com.claudewidget.worker
 
 import android.content.Context
-import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
-import com.claudewidget.widget.ClaudeUsageWidget
+import com.claudewidget.widget.forceWidgetUpdate
 
 /**
  * Fires once after the stale threshold to re-render the widget,
@@ -16,9 +15,7 @@ class StaleCheckWorker(
 ) : CoroutineWorker(context, params) {
 
     override suspend fun doWork(): Result {
-        val ids = GlanceAppWidgetManager(applicationContext)
-            .getGlanceIds(ClaudeUsageWidget::class.java)
-        ids.forEach { ClaudeUsageWidget().update(applicationContext, it) }
+        forceWidgetUpdate(applicationContext)
         return Result.success()
     }
 }

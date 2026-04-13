@@ -8,9 +8,8 @@ import androidx.work.WorkManager
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.claudewidget.data.UsageRepository
-import androidx.glance.appwidget.GlanceAppWidgetManager
-import com.claudewidget.widget.ClaudeUsageWidget
 import com.claudewidget.widget.STALE_THRESHOLD_MS
+import com.claudewidget.widget.forceWidgetUpdate
 import java.util.concurrent.TimeUnit
 
 class UsageFetchWorker(
@@ -30,8 +29,7 @@ class UsageFetchWorker(
 
         return if (result.isSuccess) {
             Log.i(TAG, "Usage fetch succeeded, updating widget")
-            GlanceAppWidgetManager(applicationContext).getGlanceIds(ClaudeUsageWidget::class.java)
-                .forEach { ClaudeUsageWidget().update(applicationContext, it) }
+            forceWidgetUpdate(applicationContext)
             // Schedule a stale check to re-render widget when data becomes outdated
             val staleCheck = OneTimeWorkRequestBuilder<StaleCheckWorker>()
                 .setInitialDelay(STALE_THRESHOLD_MS, TimeUnit.MILLISECONDS)
@@ -47,8 +45,7 @@ class UsageFetchWorker(
             // Update widget whenever credentials are missing or expired
             if (msg.contains("Auth expired") || msg.contains("No session cookie") || msg.contains("No org ID")) {
                 Log.i(TAG, "No credentials — updating widget to sign-in state")
-                GlanceAppWidgetManager(applicationContext).getGlanceIds(ClaudeUsageWidget::class.java)
-                .forEach { ClaudeUsageWidget().update(applicationContext, it) }
+                forceWidgetUpdate(applicationContext)
                 return Result.failure() // Don't retry — nothing will change without re-login
             }
             Result.retry()
