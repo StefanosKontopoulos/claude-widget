@@ -79,6 +79,7 @@ Your data never leaves your device:
 
 - The session cookie is stored **encrypted on-device** using AES-256 encryption
 - The app makes requests **only to `claude.ai`** — no third-party servers, no analytics, no tracking
+- All connections to `claude.ai` use **certificate pinning** — the app rejects any certificate not issued by a known Let's Encrypt intermediate, blocking MITM interception even from device-trusted proxies
 - You can sign out at any time from the app, which wipes all stored credentials immediately
 
 ---
